@@ -16,15 +16,18 @@ enum ButtonBGValues {
 export function Button({
   label,
   bg = ButtonBG.primary,
+  onClick,
 }: {
   label: string;
   bg?: ButtonBG;
+  onClick?: () => void;
 }) {
   return (
     <button
+      onClick={onClick}
       className={`${
         bg == ButtonBG.grey || bg == ButtonBG.red ? "text-white" : "text-black"
-      } min-h-[48px] flex items-center justify-center w-full px-4 rounded-2xl`}
+      } min-h-[44px] flex items-center justify-center w-full px-4 rounded-2xl`}
       style={{
         backgroundColor:
           ButtonBGValues[ButtonBG[bg] as keyof typeof ButtonBGValues],

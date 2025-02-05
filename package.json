@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "json-server": "json-server --watch ./public/db.json --port 4000",
     "dev": "next dev --turbopack",
     "build": "storybook build public",
     "start": "next start",
@@ -12,9 +13,11 @@
     "serve-storybook": "npx serve ./.storybook"
   },
   "dependencies": {
+    "json-server": "^1.0.0-beta.3",
     "next": "15.1.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "swr": "^2.3.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.4",
@@ -26,6 +29,7 @@
     "@storybook/nextjs": "^8.6.0-alpha.0",
     "@storybook/react": "^8.6.0-alpha.0",
     "@storybook/test": "^8.6.0-alpha.0",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

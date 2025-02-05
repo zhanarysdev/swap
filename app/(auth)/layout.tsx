@@ -14,14 +14,16 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <Icon name="Logo" />
           </div>
           <a href="/registration" className="flex items-center gap-2">
-            <span>Создать аккаунт</span>
+            <span className="prose-lg text-white">Создать аккаунт</span>
             <Icon name="Arrow" />
           </a>
         </div>
         <div className="flex justify-center">{children}</div>
-        <div>
-          <p>© 2025 Swapp</p>
-          <a href="#">Политика конфиденциальности </a>
+        <div className="flex flex-col gap-2">
+          <p className="prose-sm text-grey">© 2025 Swapp</p>
+          <a href="#" className="prose-sm text-white">
+            Политика конфиденциальности{" "}
+          </a>
         </div>
       </div>
     </div>
