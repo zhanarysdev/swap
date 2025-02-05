@@ -1,4 +1,3 @@
-import jsonServer from "json-server";
 import { NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
