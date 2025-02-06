@@ -41,37 +41,39 @@ export function Table({
           </tr>
         </thead>
         <tbody>
-          {data.map((el) => (
-            <tr key={el.id}>
-              {labels.map((item) => (
-                <td
-                  key={item.key}
-                  className="text-left border-b border-lightGrey font-semibold text-base leading-5 p-3 py-2"
-                >
-                  {item.key === "id" ? <Checkbox /> : el[item.key]}
-                </td>
-              ))}
-              {(onDelete || onEdit) && (
-                <td className="flex gap-4 text-left border-b border-lightGrey font-semibold text-base px-3 py-2 leading-5">
-                  {onDelete && (
-                    <Icon
-                      name="Trash"
-                      onClick={() => onDelete(String(el.id))}
-                      className="cursor-pointer"
-                    />
-                  )}
+          {data.length
+            ? data.map((el) => (
+                <tr key={el.id}>
+                  {labels.map((item) => (
+                    <td
+                      key={item.key}
+                      className="text-left border-b border-lightGrey font-semibold text-base leading-5 p-3 py-2"
+                    >
+                      {item.key === "id" ? <Checkbox /> : el[item.key]}
+                    </td>
+                  ))}
+                  {(onDelete || onEdit) && (
+                    <td className="flex gap-4 text-left border-b border-lightGrey font-semibold text-base px-3 py-2 leading-5">
+                      {onDelete && (
+                        <Icon
+                          name="Trash"
+                          onClick={() => onDelete(String(el.id))}
+                          className="cursor-pointer"
+                        />
+                      )}
 
-                  {onEdit && (
-                    <Icon
-                      name="Edit"
-                      onClick={() => onEdit(String(el.id))}
-                      className="cursor-pointer"
-                    />
+                      {onEdit && (
+                        <Icon
+                          name="Edit"
+                          onClick={() => onEdit(String(el.id))}
+                          className="cursor-pointer"
+                        />
+                      )}
+                    </td>
                   )}
-                </td>
-              )}
-            </tr>
-          ))}
+                </tr>
+              ))
+            : null}
         </tbody>
       </table>
     </div>

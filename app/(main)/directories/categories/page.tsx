@@ -2,14 +2,19 @@
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
-import { Label } from "@/components/input/label";
-import { Modal } from "@/components/modal/modal";
 import { ModalDelete } from "@/components/modal/modal-delete";
+import { ModalSave } from "@/components/modal/modal-save";
+import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
 import { fetcher } from "@/fetcher";
+import { db } from "@/firebase";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { useForm } from "react-hook-form";
 import useSWR from "swr";
+import * as yup from "yup";
 
 const labels = [
   {
@@ -30,78 +35,62 @@ const labels = [
   },
 ];
 
-export default function DirectoriesCategoriesPage() {
-  const [isOpen, setOpen] = useState(false);
-  const [value, setValue] = useState("");
-  const [isEdit, setEdit] = useState<null | string>(null);
-  const [isDelete, setDelete] = useState<null | string>(null);
-  const [valueError, setValueError] = useState<undefined | string>(undefined);
-  const { data, isLoading, mutate } = useSWR(
-    "http://localhost:4000/dir_categories",
-    fetcher
-  );
-  const remove = async () => {
-    const res = await fetch(
-      `http://localhost:4000/dir_categories/${isDelete}`,
-      {
-        method: "DELETE",
-      }
-    );
+const schema = yup
+  .object({
+    name: yup.string().required("Oбязательное поле"),
+  })
+  .required();
+type FormSchemaType = yup.InferType<typeof schema>;
 
-    if (res.ok) {
-      setDelete(null);
+export default function DirCategoriesPage() {
+  const [isOpen, setOpen] = useState(false);
+  const [isDelete, setDelete] = useState<null | string>(null);
+  const [isEdit, setEdit] = useState<null | string>(null);
+
+  const { data, isLoading, mutate } = useSWR(`dir_categories`, fetcher);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm<FormSchemaType>({
+    resolver: yupResolver(schema),
+  });
+
+  if (isLoading) return <Spinner />;
+
+  async function save(data: FormSchemaType) {
+    const docRef = await addDoc(collection(db, "dir_categories"), {
+      name: data.name,
+      company_count: 0,
+      influencer_count: 0,
+    });
+    if (docRef.id) {
+      reset();
+      setOpen(false);
       mutate();
     }
-  };
+  }
 
-  const save = async () => {
-    if (!value) {
-      return setValueError("Обязательное поле");
-    } else {
-      setValueError(undefined);
+  async function edit(data: FormSchemaType) {
+    const docRef = doc(db, "dir_categories", isEdit); // Specify the collection and document ID
+    await setDoc(docRef, {
+      name: data.name,
+    });
+    if (docRef.id) {
+      reset();
+      setEdit(null);
+      mutate();
     }
-    if (isEdit) {
-      const res = await fetch(
-        `http://localhost:4000/dir_categories/${isEdit}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: value,
-            company_count: 0,
-            influencer_count: 0,
-          }),
-        }
-      );
-      if (res.ok) {
-        setEdit(null);
-        setOpen(false);
-        mutate();
-      }
-    } else {
-      const res = await fetch("http://localhost:4000/dir_categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: value,
-          company_count: 0,
-          influencer_count: 0,
-        }),
-      });
-      if (res.ok) {
-        setOpen(false);
-        mutate();
-      }
-    }
-    setValue("");
-  };
-  const edit = async (id: string) => {
-    setEdit(id);
-    setValue(data.find((el: any) => el.id === id).name);
-    setOpen(true);
-  };
+  }
 
-  if (isLoading) return <div>...loading</div>;
+  async function remove() {
+    await deleteDoc(doc(db, "dir_categories", isDelete));
+    setDelete(null);
+    mutate();
+  }
 
   return (
     <div>
@@ -109,47 +98,53 @@ export default function DirectoriesCategoriesPage() {
       <Table
         data={data}
         labels={labels}
-        onDelete={(id) => setDelete(id)}
-        onEdit={edit}
+        onEdit={(id) => {
+          reset(data.find((el) => el.id === id) as any);
+          setEdit(id);
+        }}
+        onDelete={(id) => {
+          setDelete(id);
+        }}
         control={{
           label: "Добавить",
-          action: () => {
-            setOpen(true);
-          },
+          action: () => setOpen(true),
         }}
       />
-      {isOpen &&
+
+      {(isOpen || isEdit) &&
         createPortal(
-          <Modal
+          <ModalSave
+            key={isEdit ? "edit-modal" : "add-modal"}
+            onSave={handleSubmit(isEdit ? edit : save)}
+            label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
-              setValue("");
+              reset({ name: "" });
               setOpen(false);
+              setEdit(null);
             }}
-            onSave={save}
-            label={isEdit ? "Редактировать категорию" : "Добавить категорию"}
           >
-            <div className="flex flex-col gap-2">
-              <Label label={"Категория"} />
-              <Input
-                placeholder="Категория"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-              <FieldError error={valueError} />
+            <div className="flex flex-col gap-8">
+              <div>
+                <Input
+                  placeholder="Название"
+                  name="name"
+                  {...register("name")}
+                />
+                <FieldError error={errors.name?.message} />
+              </div>
             </div>
-          </Modal>,
-          document.getElementById("page-wrapper") as any
+          </ModalSave>,
+          document.getElementById("page-wrapper")
         )}
+
       {isDelete &&
         createPortal(
           <ModalDelete
-            close={() => {
-              setDelete(null);
-            }}
+            label={"Удалить"}
+            close={() => setDelete(null)}
             onDelete={remove}
-            label="Вы точно хотите удалить этот город?"
           />,
-          document.getElementById("page-wrapper") as any
+          document.getElementById("page-wrapper")
         )}
     </div>
   );

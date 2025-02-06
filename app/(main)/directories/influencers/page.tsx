@@ -34,18 +34,17 @@ const labels = [
   },
 ];
 
+const url = "https://ninety-beans-jog.loca.lt";
+
 export default function CitiesPage() {
   const [isOpen, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [isEdit, setEdit] = useState<null | string>(null);
   const [isDelete, setDelete] = useState<null | string>(null);
   const [valueError, setValueError] = useState<undefined | string>(undefined);
-  const { data, isLoading, mutate } = useSWR(
-    "http://localhost:4000/influencers",
-    fetcher
-  );
+  const { data, isLoading, mutate } = useSWR(`${url}/influencers`, fetcher);
   const remove = async () => {
-    const res = await fetch(`http://localhost:4000/influencers/${isDelete}`, {
+    const res = await fetch(`${url}/influencers/${isDelete}`, {
       method: "DELETE",
     });
 
@@ -62,7 +61,7 @@ export default function CitiesPage() {
       setValueError(undefined);
     }
     if (isEdit) {
-      const res = await fetch(`http://localhost:4000/influencers/${isEdit}`, {
+      const res = await fetch(`${url}/influencers/${isEdit}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -77,7 +76,7 @@ export default function CitiesPage() {
         mutate();
       }
     } else {
-      const res = await fetch("http://localhost:4000/influencers", {
+      const res = await fetch(`${url}/influencers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

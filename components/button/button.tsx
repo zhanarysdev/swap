@@ -17,13 +17,16 @@ export function Button({
   label,
   bg = ButtonBG.primary,
   onClick,
+  type,
 }: {
   label: string;
   bg?: ButtonBG;
   onClick?: () => void;
+  type?: "submit";
 }) {
   return (
     <button
+      type={type}
       onClick={onClick}
       className={`${
         bg == ButtonBG.grey || bg == ButtonBG.red ? "text-white" : "text-black"

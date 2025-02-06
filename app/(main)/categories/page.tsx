@@ -2,16 +2,20 @@
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
-import { Label } from "@/components/input/label";
-import { Modal } from "@/components/modal/modal";
 import { ModalDelete } from "@/components/modal/modal-delete";
+import { ModalSave } from "@/components/modal/modal-save";
 import { Select } from "@/components/select/select";
+import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
 import { fetcher } from "@/fetcher";
-import { count } from "console";
+import { db } from "@/firebase";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
+import * as yup from "yup";
 
 const labels = [
   {
@@ -32,80 +36,66 @@ const labels = [
   },
 ];
 
+const schema = yup
+  .object({
+    name: yup.string().required("Oбязательное поле"),
+    city: yup.string().required("Oбязательное поле"),
+  })
+  .required();
+type FormSchemaType = yup.InferType<typeof schema>;
+
 export default function CategoriesPage() {
   const [isOpen, setOpen] = useState(false);
-  const [value, setValue] = useState("");
-  const [isEdit, setEdit] = useState<null | string>(null);
   const [isDelete, setDelete] = useState<null | string>(null);
-  const [valueError, setValueError] = useState<undefined | string>(undefined);
-  const [cityError, setCityError] = useState<undefined | string>(undefined);
-  const [city, setCity] = useState<null | string>(null);
-  const cities = useSWR("http://localhost:4000/cities", fetcher);
-  const { data, isLoading, mutate } = useSWR(
-    "http://localhost:4000/categories",
-    fetcher
-  );
-  const remove = async () => {
-    const res = await fetch(`http://localhost:4000/categories/${isDelete}`, {
-      method: "DELETE",
-    });
+  const [isEdit, setEdit] = useState<null | string>(null);
 
-    if (res.ok) {
-      setDelete(null);
+  const cities = useSWR(`cities`, fetcher);
+  const { data, isLoading, mutate } = useSWR(`categories`, fetcher);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm<FormSchemaType>({
+    resolver: yupResolver(schema),
+  });
+
+  if (isLoading || cities.isLoading) return <Spinner />;
+
+  async function save(data: FormSchemaType) {
+    const docRef = await addDoc(collection(db, "categories"), {
+      name: data.name,
+      city: data.city,
+      count: 0,
+    });
+    if (docRef.id) {
+      reset();
+      setOpen(false);
       mutate();
     }
-  };
+  }
 
-  const save = async () => {
-    if (!value) {
-      return setValueError("Обязательное поле");
-    } else {
-      setValueError(undefined);
+  async function edit(data: FormSchemaType) {
+    const docRef = doc(db, "categories", isEdit); // Specify the collection and document ID
+    await setDoc(docRef, {
+      name: data.name,
+      city: data.city,
+    });
+    if (docRef.id) {
+      reset();
+      setEdit(null);
+      setOpen(false);
+      mutate();
     }
-    if (!city) {
-      return setCityError("Обязательное поле");
-    } else {
-      setCityError(undefined);
-    }
-    if (isEdit) {
-      const res = await fetch(`http://localhost:4000/categories/${isEdit}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: value,
-          city: city,
-        }),
-      });
-      if (res.ok) {
-        setEdit(null);
-        setOpen(false);
-        mutate();
-      }
-    } else {
-      const res = await fetch("http://localhost:4000/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: value,
-          city: city,
-          count: 0,
-        }),
-      });
-      if (res.ok) {
-        setOpen(false);
-        mutate();
-      }
-    }
-    setValue("");
-    setCity(null);
-  };
-  const edit = async (id: string) => {
-    setEdit(id);
-    setValue(data.find((el: any) => el.id === id).name);
-    setOpen(true);
-  };
+  }
 
-  if (isLoading) return <div>...loading</div>;
+  async function remove() {
+    await deleteDoc(doc(db, "categories", isDelete));
+    setDelete(null);
+    mutate();
+  }
 
   return (
     <div>
@@ -113,68 +103,71 @@ export default function CategoriesPage() {
       <Table
         data={data}
         labels={labels}
-        onDelete={(id) => setDelete(id)}
-        onEdit={edit}
+        onEdit={(id) => {
+          reset(data.find((el) => el.id === id) as any);
+          setEdit(id);
+        }}
+        onDelete={(id) => {
+          setDelete(id);
+        }}
         control={{
           label: "Добавить",
-          action: () => {
-            setOpen(true);
-          },
+          action: () => setOpen(true),
         }}
       />
-      {isOpen &&
+
+      {(isOpen || isEdit) &&
         createPortal(
-          <Modal
+          <ModalSave
+            key={isEdit ? "edit-modal" : "add-modal"}
+            onSave={handleSubmit(isEdit ? edit : save)}
+            label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
-              setValue("");
+              reset({ name: "", city: "" });
               setOpen(false);
+              setEdit(null);
             }}
-            onSave={save}
-            label={isEdit ? "Редактировать город" : "Название города"}
           >
-            <div className="flex flex-col gap-[32px]">
-              <div className="flex flex-col gap-2">
-                <Label label={"Категория"} />
+            <div className="flex flex-col gap-8">
+              <div>
                 <Input
-                  placeholder="Категория"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
+                  placeholder="Название"
+                  name="name"
+                  {...register("name")}
                 />
-                <FieldError error={valueError} />
+                <FieldError error={errors.name?.message} />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <Label label={"Категория"} />
-                <Select
-                  data={city ? city : "Город"}
-                  options={
-                    cities.data
-                      ? cities.data.map((el: any) => ({
-                          value: el.name,
-                          label: el.name,
-                        }))
-                      : []
-                  }
-                  onChange={function (v: string): void {
-                    setCity(v);
-                  }}
+              <div>
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <Select
+                      data={value ? value : "Город"}
+                      options={cities.data.map((el: any) => ({
+                        label: el.name,
+                        value: el.name,
+                      }))}
+                      onChange={onChange}
+                    />
+                  )}
+                  name={"city"}
                 />
-                <FieldError error={cityError} />
+                <FieldError error={errors.city?.message} />
               </div>
             </div>
-          </Modal>,
-          document.getElementById("page-wrapper") as any
+          </ModalSave>,
+          document.getElementById("page-wrapper")
         )}
+
       {isDelete &&
         createPortal(
           <ModalDelete
-            close={() => {
-              setDelete(null);
-            }}
+            label={"Удалить"}
+            close={() => setDelete(null)}
             onDelete={remove}
-            label="Вы точно хотите удалить этот город?"
           />,
-          document.getElementById("page-wrapper") as any
+          document.getElementById("page-wrapper")
         )}
     </div>
   );
