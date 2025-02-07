@@ -14,7 +14,7 @@ import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
 import { fetcher } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -110,6 +110,7 @@ export default function BusinesId() {
       reset({ ...data[0], ...{ city: data[0].city.name } });
     }
   }, [data]);
+  const { back } = useRouter();
 
   if (isLoading || advertisement.isLoading || cities.isLoading)
     return <Spinner />;
@@ -127,6 +128,7 @@ export default function BusinesId() {
             preIcon={<Icon name="Caret" />}
             bg={ButtonBG.grey}
             label={"Назад"}
+            onClick={back}
           />
         </div>
         <div className="flex items-center gap-4">
