@@ -18,8 +18,18 @@ export const ModalDelete = ({
           <Icon name="Close" onClick={close} className="cursor-pointer" />
         </div>
         <div className="flex items-center gap-4">
-          <Button label="Отменить" onClick={close} bg={ButtonBG.grey} />
-          <Button label={"Удалить"} onClick={onDelete} bg={ButtonBG.red} />
+          <Button
+            styles="w-full justify-center"
+            label="Отменить"
+            onClick={close}
+            bg={ButtonBG.grey}
+          />
+          <Button
+            styles="w-full justify-center"
+            label={"Удалить"}
+            onClick={onDelete}
+            bg={ButtonBG.red}
+          />
         </div>
       </div>
     </div>

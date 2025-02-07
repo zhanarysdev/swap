@@ -22,6 +22,7 @@ export const Modal = ({
         </div>
         <div>{children}</div>
         <Button
+          styles="w-full justify-center"
           type="submit"
           label={"Сохранить"}
           onClick={onSave}

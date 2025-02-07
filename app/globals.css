@@ -41,6 +41,7 @@
   width: 0;
 }
 
+
 /* Create a custom checkbox */
 .checkmark {
   position: absolute;
@@ -93,4 +94,14 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+input:disabled {
+  color: #AAAAAA!important;
+}
+input::placeholder {
+  color: #AAAAAA!important;
+}
+input:focus {
+  outline: none;
 }

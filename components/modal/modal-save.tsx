@@ -24,7 +24,12 @@ export const ModalSave = ({
           <Icon name="Close" onClick={close} className="cursor-pointer" />
         </div>
         <div>{children}</div>
-        <Button type="submit" label={"Сохранить"} bg={ButtonBG.primary} />
+        <Button
+          type="submit"
+          styles="w-full justify-center"
+          label={"Сохранить"}
+          bg={ButtonBG.primary}
+        />
       </form>
     </div>
   );

@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export enum ButtonBG {
   primary,
   orange,
@@ -18,11 +20,15 @@ export function Button({
   bg = ButtonBG.primary,
   onClick,
   type,
+  preIcon,
+  styles,
 }: {
   label: string;
   bg?: ButtonBG;
   onClick?: () => void;
   type?: "submit";
+  preIcon?: ReactNode;
+  styles?: string;
 }) {
   return (
     <button
@@ -30,13 +36,15 @@ export function Button({
       onClick={onClick}
       className={`${
         bg == ButtonBG.grey || bg == ButtonBG.red ? "text-white" : "text-black"
-      } min-h-[44px] flex items-center justify-center w-full px-4 rounded-2xl`}
+      } 
+      min-h-[44px] gap-2 flex items-center px-4 rounded-2xl ${styles}`}
       style={{
         backgroundColor:
           ButtonBGValues[ButtonBG[bg] as keyof typeof ButtonBGValues],
       }}
     >
-      {label}
+      {preIcon}
+      <span>{label}</span>
     </button>
   );
 }

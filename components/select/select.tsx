@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "../icons";
 
 export const Select = ({
@@ -12,6 +12,9 @@ export const Select = ({
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [value, setValue] = useState(() => data);
+  useEffect(() => {
+    setValue(data);
+  }, [data]);
   return (
     <div className="relative">
       <div className="relative w-full">
@@ -20,7 +23,7 @@ export const Select = ({
             isOpen ? "rounded-bl-none rounded-br-none" : ""
           }`}
         >
-          <option value="">{value}</option>
+          <option value={value}>{value}</option>
         </div>
 
         <Icon

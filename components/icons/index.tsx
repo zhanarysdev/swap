@@ -18,6 +18,12 @@ import { Search } from "./search";
 import { Sorting } from "./sorting";
 import { Trash } from "./trash";
 import { Users } from "./users";
+import { GoTo } from "./go-to";
+import { Login } from "./login";
+import { TrashSmall } from "./trash-small";
+import { Save } from "./save";
+import { Caret } from "./caret";
+import { Plus } from "./plus";
 
 const icons = {
   Ads,
@@ -38,6 +44,12 @@ const icons = {
   Sorting,
   Search,
   Trash,
+  GoTo,
+  Login,
+  TrashSmall,
+  Save,
+  Caret,
+  Plus,
 };
 export function Icon({
   className,

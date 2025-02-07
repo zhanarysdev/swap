@@ -11,7 +11,7 @@ import { fetcher } from "@/fetcher";
 import { db } from "@/firebase";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import useSWR from "swr";
