@@ -24,6 +24,7 @@ import { TrashSmall } from "./trash-small";
 import { Save } from "./save";
 import { Caret } from "./caret";
 import { Plus } from "./plus";
+import { Pencil } from "./pencil";
 
 const icons = {
   Ads,
@@ -50,6 +51,7 @@ const icons = {
   Save,
   Caret,
   Plus,
+  Pencil,
 };
 export function Icon({
   className,

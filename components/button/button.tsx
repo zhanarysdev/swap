@@ -26,7 +26,7 @@ export function Button({
   label: string;
   bg?: ButtonBG;
   onClick?: () => void;
-  type?: "submit";
+  type?: "submit" | "button";
   preIcon?: ReactNode;
   styles?: string;
 }) {

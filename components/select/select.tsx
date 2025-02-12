@@ -23,7 +23,12 @@ export const Select = ({
             isOpen ? "rounded-bl-none rounded-br-none" : ""
           }`}
         >
-          <option value={value}>{value}</option>
+          <option
+            value={value}
+            className="hover:bg-lightGrey cursor-pointer py-[1px]  placeholder:text-grey    text-base leading-5 font-medium"
+          >
+            {value}
+          </option>
         </div>
 
         <Icon
@@ -40,7 +45,7 @@ export const Select = ({
             <option
               key={value}
               value={value}
-              className="hover:bg-lightGrey cursor-pointer  placeholder:text-grey   rounded-2xl py-[15px] px-[12px] text-base leading-5 font-medium"
+              className="hover:bg-lightGrey cursor-pointer placeholder:text-grey   rounded-2xl py-[15px] px-[12px] text-base leading-5 font-medium"
               onClick={() => {
                 setValue(value);
                 onChange(value);

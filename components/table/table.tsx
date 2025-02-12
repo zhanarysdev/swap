@@ -1,7 +1,19 @@
 "use client";
-import Link from "next/link";
-import { Checkbox } from "../checkbox/checkbox";
-import { Icon } from "../icons";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useState } from "react";
+import { SortableRow } from "./dragable";
 import { Filters } from "./filters";
 
 export function Table({
@@ -33,99 +45,70 @@ export function Table({
   };
   filters?: boolean;
 }) {
-  const renderContent = (item, el, index) => {
-    if (item.link) {
-      const link = el[item.key].split("@");
-      return <Link href={`${item.link}${link[1]}`}>{el[item.key]}</Link>;
-    }
+  const [dnddata, setData] = useState(data);
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
 
-    if (item.timeStamp) {
-      return el[item.key].seconds;
-    }
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
 
-    if (item.isObject) {
-      return el[item.key]?.name;
+    if (active.id !== over.id) {
+      const oldIndex = dnddata.findIndex((item) => item.id === active.id);
+      const newIndex = dnddata.findIndex((item) => item.id === over.id);
+      setData(arrayMove(dnddata, oldIndex, newIndex));
     }
-
-    if (item.key === "id") {
-      return number ? index + 1 : <Checkbox />;
-    }
-
-    return (
-      <div
-        className={`${
-          item.rounded
-            ? "border rounded-[10px] w-fit px-3 py-[6px] text-[12px] leading-[12px]"
-            : ""
-        }`}
-      >
-        {el[item.key]}
-      </div>
-    );
   };
-
   return (
     <div className="flex flex-col gap-4">
       {filters && <Filters labels={labels} control={control} />}
-      <table>
-        <thead>
-          <tr>
-            {labels.map(({ title, key }) => (
-              <th
-                key={key}
-                className="text-[#AAAAAA] first-of-type:w-[44px] first-of-type:h-[44px]  border-b border-lightGrey font-semibold text-base leading-5 p-3 text-left"
-              >
-                {title === "ID" && number ? "№" : title}
-              </th>
-            ))}
-            {(onDelete || onEdit || goTo) && (
-              <th className="text-[#AAAAAA] border-b border-lightGrey font-semibold text-base leading-5 p-3 text-left">
-                Действия
-              </th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {data.length
-            ? data.map((el, index) => (
-                <tr key={el.id}>
-                  {labels.map((item) => (
-                    <td
-                      key={item.key}
-                      className="text-left border-b border-lightGrey font-semibold text-base leading-5 p-3 py-2"
-                    >
-                      {renderContent(item, el, index)}
-                    </td>
-                  ))}
-                  {(onDelete || onEdit || goTo) && (
-                    <td className="flex gap-4 text-left border-b border-lightGrey font-semibold text-base px-3 py-2 leading-5">
-                      {goTo && (
-                        <Link href={`${goTo}/${el.id}`}>
-                          <Icon name="GoTo" />
-                        </Link>
-                      )}
-                      {onDelete && (
-                        <Icon
-                          name="Trash"
-                          onClick={() => onDelete(String(el.id))}
-                          className="cursor-pointer"
-                        />
-                      )}
-
-                      {onEdit && (
-                        <Icon
-                          name="Edit"
-                          onClick={() => onEdit(String(el.id))}
-                          className="cursor-pointer"
-                        />
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))
-            : null}
-        </tbody>
-      </table>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={dnddata as any}
+          strategy={verticalListSortingStrategy}
+        >
+          <table>
+            <thead>
+              <tr>
+                {labels.map(({ title, key }) => (
+                  <th
+                    key={key}
+                    className="text-[#AAAAAA] first-of-type:w-[44px] first-of-type:h-[44px]  border-b border-lightGrey font-semibold text-base leading-5 p-3 text-left"
+                  >
+                    {title === "ID" && number ? "№" : title}
+                  </th>
+                ))}
+                {(onDelete || onEdit || goTo) && (
+                  <th className="text-[#AAAAAA] border-b border-lightGrey font-semibold text-base leading-5 p-3 text-left">
+                    Действия
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {dnddata.length
+                ? dnddata.map((el, index) => (
+                    <SortableRow
+                      key={el.id}
+                      index={index}
+                      labels={labels}
+                      el={el}
+                      goTo={goTo}
+                      onEdit={onEdit}
+                      number={number}
+                      onDelete={onDelete}
+                    />
+                  ))
+                : null}
+            </tbody>
+          </table>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }

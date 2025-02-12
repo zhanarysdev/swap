@@ -53,3 +53,19 @@ export const fetcher = async (collection_name: string) => {
 
   return formattedDocs;
 };
+
+export const fetcher2 = async (url: string) => {
+  const res = fetch(`https://swapp.kz/api/v1/${url}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      SuperToken: "superadmin",
+    },
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  });
+  return res;
+};

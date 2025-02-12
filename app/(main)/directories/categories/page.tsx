@@ -52,7 +52,6 @@ export default function DirCategoriesPage() {
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
     reset,
   } = useForm<FormSchemaType>({

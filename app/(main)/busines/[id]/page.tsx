@@ -109,7 +109,7 @@ export default function BusinesId() {
     if (data && data[0]) {
       reset({ ...data[0], ...{ city: data[0].city.name } });
     }
-  }, [data]);
+  }, [data, reset]);
   const { back } = useRouter();
 
   if (isLoading || advertisement.isLoading || cities.isLoading)
