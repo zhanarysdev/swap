@@ -55,7 +55,7 @@ export const fetcher = async (collection_name: string) => {
 };
 
 export const fetcher2 = async (url: string) => {
-  const res = fetch(`https://swapp.kz/api/v1/${url}`, {
+  const res = fetch(`https://swapp.kz/api/v1/${url}?page=1&page_size=10`, {
     method: "GET",
     headers: {
       Accept: "application/json",

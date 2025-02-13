@@ -1,6 +1,6 @@
 export function Header({
   title,
-  subTitle,
+  subTitle = "Информация",
 }: {
   title: string;
   subTitle: string;

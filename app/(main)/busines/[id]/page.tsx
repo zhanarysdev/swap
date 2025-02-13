@@ -8,7 +8,6 @@ import { InputButton } from "@/components/input/input-button";
 import { InputTrash } from "@/components/input/input-trash";
 import { Label } from "@/components/input/label";
 import { Modal } from "@/components/modal/modal";
-import { ModalSave } from "@/components/modal/modal-save";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";

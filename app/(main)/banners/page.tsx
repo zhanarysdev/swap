@@ -5,7 +5,7 @@ import { Input } from "@/components/input/input";
 import { Label } from "@/components/input/label";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
+import { TableDragable } from "@/components/table/table-dragable";
 import { fetcher } from "@/fetcher";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -39,7 +39,7 @@ export default function BannersPage() {
   return (
     <div>
       <Header title={"Баннеры"} subTitle={"Информация"} />
-      <Table
+      <TableDragable
         data={data}
         labels={labels}
         onEdit={(id) => {

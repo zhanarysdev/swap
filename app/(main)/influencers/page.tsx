@@ -2,6 +2,7 @@
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
+import { InputFile } from "@/components/input/input-file";
 import { Label } from "@/components/input/label";
 import { Text } from "@/components/input/text";
 import { ModalSave } from "@/components/modal/modal-save";
@@ -11,7 +12,7 @@ import { fetcher } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import * as y from "yup";
 
@@ -27,7 +28,6 @@ const labels = [
   {
     key: "city",
     title: "Город",
-    isObject: true,
   },
   {
     key: "advertisment",
@@ -48,6 +48,7 @@ const labels = [
   {
     key: "category",
     title: "Категория",
+    rounded: true,
   },
   {
     key: "restriction",
@@ -55,12 +56,14 @@ const labels = [
   },
 ];
 
+const sort = ["name", "city", "sex", "age", "status", "category"];
+
 const schema = y
   .object({
-    label: y.string().required(),
-    text: y.string().max(300).required(),
-    link: y.string().required(),
-    photo: y.mixed().required(),
+    label: y.string().required("Oбязательное поле"),
+    text: y.string().max(300).required("Oбязательное поле"),
+    link: y.string().required("Oбязательное поле"),
+    photo: y.string().required("Oбязательное поле"),
   })
   .required();
 
@@ -74,6 +77,7 @@ export default function ModerationPage() {
     handleSubmit,
     register,
     watch,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -88,9 +92,10 @@ export default function ModerationPage() {
       <Header title={"Инфлюенсеры"} subTitle={"Информация"} />
       <Table
         control={{
-          label: "Уведомление",
+          label: "Отправить уведомление",
           action: () => setOpen(true),
         }}
+        sort={sort}
         goTo={`/influencers`}
         data={data}
         labels={labels}
@@ -114,6 +119,7 @@ export default function ModerationPage() {
                 <Text
                   count={watch("text")?.length || 0}
                   maxCount={300}
+                  maxLength={300}
                   placeholder="Об акции"
                   {...register("text")}
                 />
@@ -126,9 +132,16 @@ export default function ModerationPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label label={"Фото"} />
-                <Input
-                  placeholder="Перенесите сюда файл"
-                  {...register("photo")}
+                <Controller
+                  control={control}
+                  name="photo"
+                  render={({ field: { value, onChange } }) => (
+                    <InputFile
+                      placeholder="Перенесите сюда файл"
+                      value={value}
+                      onChange={onChange}
+                    />
+                  )}
                 />
                 <FieldError error={errors.photo?.message} />
               </div>

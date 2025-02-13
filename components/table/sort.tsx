@@ -1,4 +1,5 @@
 import { Icon } from "../icons";
+import Radio from "../radio/radio";
 
 export function Sort({
   labels,
@@ -14,17 +15,7 @@ export function Sort({
         <div className="font-bold leading-5 text-base">Сортировка</div>
         <Icon name="Close" onClick={close} className="cursor-pointer" />
       </div>
-      <fieldset className="flex flex-col gap-4">
-        {data.map(({ key, title }) => (
-          <div
-            className="font-semibold leading-5 text-base flex justify-between items-center"
-            key={key}
-          >
-            <span>{title}</span>
-            <input id={key} value={key} name="sort" type="radio" />
-          </div>
-        ))}
-      </fieldset>
+      <Radio options={data} />
     </div>
   );
 }

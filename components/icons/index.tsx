@@ -25,6 +25,7 @@ import { Save } from "./save";
 import { Caret } from "./caret";
 import { Plus } from "./plus";
 import { Pencil } from "./pencil";
+import { Upload } from "./upload";
 
 const icons = {
   Ads,
@@ -52,6 +53,7 @@ const icons = {
   Caret,
   Plus,
   Pencil,
+  Upload,
 };
 export function Icon({
   className,

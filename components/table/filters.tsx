@@ -10,6 +10,7 @@ export function Filters({
   control,
   labels,
   filter,
+  sort,
 }: {
   labels: { key: string; title: string }[];
   control?: {
@@ -17,6 +18,7 @@ export function Filters({
     action: () => void;
   };
   filter?: any;
+  sort?: string[];
 }) {
   const [isSort, setSort] = useState(false);
   const [isFilter, setFilter] = useState(false);
@@ -40,13 +42,19 @@ export function Filters({
       <div>
         {control && (
           <Button
+            styles="font-bold"
             bg={ButtonBG.primary}
             label={control.label}
             onClick={control.action}
           />
         )}
       </div>
-      {isSort && <Sort close={() => setSort(false)} labels={labels} />}
+      {isSort && (
+        <Sort
+          close={() => setSort(false)}
+          labels={sort ? labels.filter((el) => sort.includes(el.key)) : labels}
+        />
+      )}
       {isFilter && <Filter close={() => setFilter(false)} labels={labels} />}
     </div>
   );
