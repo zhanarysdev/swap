@@ -108,3 +108,37 @@ input:focus {
 textarea:focus {
   outline: none;
 }
+
+.react-calendar__navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.react-calendar__month-view__weekdays {
+  margin-bottom: 1rem;
+}
+.react-calendar__month-view__weekdays__weekday {
+  display: flex;
+  justify-content: center;
+}
+.react-calendar__tile {
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.react-calendar__tile:hover {
+  background-color: #C8C8C8;
+  color: #212121;
+}
+.react-calendar__navigation__arrow {
+  margin: 0 4px;
+}
+.react-calendar__navigation__next2-button {
+  margin-bottom: 1px;
+  margin-right: 22px;
+}
+
+.react-calendar__navigation__prev2-button {
+  margin-bottom: 1px;
+  margin-left: 22px;
+}

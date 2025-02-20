@@ -3,6 +3,7 @@ import { BannerPrior } from "@/components/banner-prior/banner-prior";
 import { Header } from "@/components/header/header";
 import { Input } from "@/components/input/input";
 import { Label } from "@/components/input/label";
+import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Spinner } from "@/components/spinner/spinner";
 import { TableDragable } from "@/components/table/table-dragable";
@@ -80,6 +81,16 @@ export default function BannersPage() {
               </div>
             </div>
           </ModalSave>,
+          document.getElementById("page-wrapper")
+        )}
+
+      {isDelete &&
+        createPortal(
+          <ModalDelete
+            label={"Удалить"}
+            close={() => setDelete(null)}
+            onDelete={() => console.log(isDelete)}
+          />,
           document.getElementById("page-wrapper")
         )}
     </div>

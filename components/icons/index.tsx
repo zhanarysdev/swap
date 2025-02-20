@@ -26,10 +26,14 @@ import { Caret } from "./caret";
 import { Plus } from "./plus";
 import { Pencil } from "./pencil";
 import { Upload } from "./upload";
+import { Calendar } from "./calendar";
+import { Archive } from "./archive";
+import { Eye } from "./eye";
 
 const icons = {
   Ads,
   Arrow,
+  Archive,
   Bag,
   Bell,
   Category,
@@ -37,6 +41,7 @@ const icons = {
   Charts,
   DropArrow,
   Directories,
+  Eye,
   Edit,
   Filter,
   Users,
@@ -54,6 +59,7 @@ const icons = {
   Plus,
   Pencil,
   Upload,
+  Calendar,
 };
 export function Icon({
   className,

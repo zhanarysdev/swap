@@ -1,5 +1,4 @@
 "use client";
-
 import { Button, ButtonBG } from "@/components/button/button";
 import { Icon } from "@/components/icons";
 import { FieldError } from "@/components/input/field-error";
@@ -9,48 +8,38 @@ import { InputLink } from "@/components/input/input-link";
 import { InputPhone } from "@/components/input/input-phone";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { Select } from "@/components/select/select";
-import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
-import { fetcher } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
-import useSWR from "swr";
 import * as y from "yup";
 
 const labels = [
   {
-    key: "id",
-    title: "ID",
+    key: "name",
+    title: "Имя",
   },
   {
-    key: "company",
-    title: "Компания",
+    key: "instagram",
+    title: "Instagram",
   },
   {
-    key: "members",
-    title: "Участников",
+    key: "registration",
+    title: "Регистрация",
   },
   {
-    key: "budget",
-    title: "Бюджет",
+    key: "date",
+    title: "Дата посещения",
   },
   {
-    key: "type",
-    title: "Тип",
-    rounded: true,
-  },
-  {
-    key: "format",
-    title: "Формат",
-    rounded: true,
+    key: "rating",
+    title: "Рейтинг",
   },
   {
     key: "status",
     title: "Статус",
-    status: true,
   },
 ];
 
@@ -69,13 +58,11 @@ const schema = y
   .required();
 type FormData = y.InferType<typeof schema>;
 
-export default function InfluencersId() {
+export default function AdsIdPage() {
   const { id } = useParams();
   const { push } = useRouter();
   const [isEdit, setEdit] = useState(false);
   const [isDelete, setDelete] = useState(false);
-
-  const { data, isLoading } = useSWR(`influencers/${id}`, fetcher);
 
   const {
     handleSubmit,
@@ -88,19 +75,10 @@ export default function InfluencersId() {
     resolver: yupResolver(schema),
   });
 
-  useEffect(() => {
-    if (data && data[0]) {
-      reset({ ...data[0], ...{ city: data[0].city.name } });
-    }
-  }, [data, reset]);
-
-  if (isLoading) return <Spinner />;
-
   const save = async (data: FormData) => {
     console.log(data);
   };
   const link = watch("instagram")?.split("@");
-
   return (
     <div>
       <div className="flex justify-between items-center mb-[64px]">
@@ -111,25 +89,30 @@ export default function InfluencersId() {
             label={"Назад"}
             onClick={() => push("/influencers")}
           />
-          <span className="text-grey font-bold text-base leading-5">
-            Регистрация: 12.04.2024
-          </span>
         </div>
         <div className="flex items-center gap-4">
           <Button
-            preIcon={<Icon name="TrashSmall" />}
+            preIcon={<Icon name="Calendar" />}
             bg={ButtonBG.grey}
             onClick={() => setDelete(true)}
-            label={"Удалить"}
+            label={"График посещения"}
           />
           <Button
-            preIcon={<Icon name={isEdit ? "Save" : "Pencil"} />}
+            preIcon={<Icon name="Archive" />}
             bg={ButtonBG.grey}
-            label={isEdit ? "Cохранить" : "Изменить"}
+            onClick={() => setDelete(true)}
+            label={"Архивировать"}
+          />
+          <Button
+            preIcon={<Icon name={"Eye"} />}
+            bg={ButtonBG.grey}
+            label={"Предпросмотр"}
             onClick={!isEdit ? () => setEdit(true) : handleSubmit(save)}
           />
         </div>
       </div>
+
+      <h1 className="text-[36px] font-bold leading-[40px] mb-8">Gippo</h1>
       <form className="flex gap-[42px]">
         <div className="flex flex-col gap-6 w-full">
           <div className="bg-lightGrey w-full h-[288px] rounded-2xl flex"></div>

@@ -24,6 +24,7 @@ export function Table({
     timeStamp?: boolean;
     rounded?: boolean;
     link?: string;
+    status?: boolean;
   }[];
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
@@ -51,6 +52,14 @@ export function Table({
 
     if (item.key === "id") {
       return number ? index + 1 : <Checkbox />;
+    }
+    if (item.status) {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>{" "}
+          <span>{el[item.key]}</span>
+        </div>
+      );
     }
 
     return (
@@ -100,7 +109,7 @@ export function Table({
                     </td>
                   ))}
                   {(onDelete || onEdit || goTo) && (
-                    <td className="flex gap-4 text-left border-b border-lightGrey font-semibold text-base px-3 py-2 leading-5">
+                    <td className="flex gap-4 text-left border-b border-lightGrey font-semibold text-base px-3 py-2 leading-5 h-[45.5px]">
                       {goTo && (
                         <Link href={`${goTo}/${el.id}`}>
                           <Icon name="GoTo" />
