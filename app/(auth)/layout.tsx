@@ -13,10 +13,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div>
             <Icon name="Logo" />
           </div>
-          <a href="/registration" className="flex items-center gap-2">
-            <span className="prose-lg text-white">Создать аккаунт</span>
-            <Icon name="Arrow" />
-          </a>
         </div>
         <div className="flex justify-center">{children}</div>
         <div className="flex flex-col gap-2">

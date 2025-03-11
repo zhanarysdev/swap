@@ -67,7 +67,7 @@ export function SideBarItem({
               <Link
                 href={sub_submenu ? "" : href}
                 onClick={() => {
-                  setSub((old) => !old)
+                  setSub((old) => (sub_submenu ? !old : null));
                 }}
                 className="flex items-center hover:bg-[#383838] hover:rounded-2xl cursor-pointer w-[253px] px-3 py-[14px] font-bold text-base leading-5"
               >

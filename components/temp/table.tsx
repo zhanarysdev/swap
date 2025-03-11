@@ -2,46 +2,15 @@
 import Link from "next/link";
 import { Checkbox } from "../checkbox/checkbox";
 import { Icon } from "../icons";
-import { Filters } from "./filters";
 import { useContext } from "react";
-import { TableContext } from "./table-context";
 import { Spinner } from "../spinner/spinner";
+import { TableContext } from "./table-provider";
+import { Filters } from "./filters";
 
-export function Table({
-  data,
-  labels,
-  onDelete,
-  control,
-  onEdit,
-  goTo,
-  filters = true,
-  number,
-  sort,
-  onSearch,
-}: {
-  number?: boolean;
-  onSearch?: (v: string) => void;
-  data: Record<string, string | number | any>[];
-  labels: {
-    key: string;
-    title: string;
-    isObject?: boolean;
-    timeStamp?: boolean;
-    rounded?: boolean;
-    link?: string;
-    status?: boolean;
-  }[];
-  onDelete?: (id: string) => void;
-  onEdit?: (id: string) => void;
-  goTo?: string;
-  control?: {
-    label: string;
-    action: () => void;
-  };
-  filters?: boolean;
-  sort?: string[];
-}) {
-  const { tableData } = useContext(TableContext);
+export default function Table() {
+  const {
+    context: { data, number, pure, labels, isLoading, onDelete, onEdit, goTo },
+  } = useContext(TableContext);
 
   const renderContent = (item, el, index) => {
     if (item.link) {
@@ -84,16 +53,9 @@ export function Table({
 
   return (
     <div className="flex flex-col gap-4">
-      {filters && (
-        <Filters
-          onSearch={onSearch}
-          sort={sort}
-          labels={labels}
-          control={control}
-        />
-      )}
+      {!pure && <Filters />}
 
-      {tableData.isLoading ? (
+      {isLoading ? (
         <Spinner />
       ) : (
         <table>

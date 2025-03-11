@@ -6,11 +6,12 @@ import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
+import { TableContext } from "@/components/table/table-context";
 import { fetcher } from "@/fetcher";
 import { db } from "@/firebase";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -47,7 +48,24 @@ export default function DirCategoriesPage() {
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
 
-  const { data, isLoading, mutate } = useSWR(`dir_categories`, fetcher);
+  const [filteredData, setFilteredData] = useState([]);
+
+  const { tableData, setTableData } = useContext(TableContext);
+
+  const { data, isLoading, mutate } = useSWR(
+    { url: `business/category/list` },
+    fetcher
+  );
+
+  useEffect(() => {
+    setTableData({ isLoading: isLoading });
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setFilteredData(data.result);
+    }
+  }, [data]);
 
   const {
     register,
@@ -57,8 +75,6 @@ export default function DirCategoriesPage() {
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
-
-  if (isLoading) return <Spinner />;
 
   async function save(data: FormSchemaType) {
     const docRef = await addDoc(collection(db, "dir_categories"), {
@@ -95,7 +111,7 @@ export default function DirCategoriesPage() {
     <div>
       <Header title={"Категории бизнеса"} subTitle={""} />
       <Table
-        data={data}
+        data={filteredData}
         labels={labels}
         onEdit={(id) => {
           reset(data.find((el) => el.id === id) as any);

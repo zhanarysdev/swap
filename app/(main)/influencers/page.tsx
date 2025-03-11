@@ -8,9 +8,10 @@ import { Text } from "@/components/input/text";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
+import { TableContext } from "@/components/table/table-context";
 import { fetcher } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -22,7 +23,7 @@ const labels = [
     title: "ID",
   },
   {
-    key: "name",
+    key: "fullname",
     title: "Имя",
   },
   {
@@ -34,7 +35,7 @@ const labels = [
     title: "Объявления",
   },
   {
-    key: "sex",
+    key: "gender",
     title: "Пол",
   },
   {
@@ -42,7 +43,7 @@ const labels = [
     title: "Возраст",
   },
   {
-    key: "rating",
+    key: "rank",
     title: "Рейтинг",
   },
   {
@@ -51,7 +52,7 @@ const labels = [
     rounded: true,
   },
   {
-    key: "restriction",
+    key: "restriction_ad",
     title: "Ограничения",
   },
 ];
@@ -70,8 +71,25 @@ const schema = y
 type FormData = y.InferType<typeof schema>;
 
 export default function ModerationPage() {
-  const { data, isLoading } = useSWR("influencers", fetcher);
   const [isOpen, setOpen] = useState(false);
+
+  const { tableData, setTableData } = useContext(TableContext);
+  const [filteredData, setFilteredData] = useState([]);
+
+  const { data, isLoading, mutate } = useSWR(
+    { url: `influencer/list?page=1&page_size=10` },
+    fetcher
+  );
+
+  useEffect(() => {
+    setTableData({ isLoading: isLoading });
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setFilteredData(data.result.items);
+    }
+  }, [data]);
 
   const {
     handleSubmit,
@@ -97,7 +115,7 @@ export default function ModerationPage() {
         }}
         sort={sort}
         goTo={`/influencers`}
-        data={data}
+        data={filteredData}
         labels={labels}
       />
       {isOpen &&

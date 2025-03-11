@@ -7,11 +7,10 @@ import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
-import { fetcher } from "@/fetcher";
-import { db } from "@/firebase";
+import { TableContext } from "@/components/table/table-context";
+import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -27,11 +26,11 @@ const labels = [
     title: "Название",
   },
   {
-    key: "company_count",
+    key: "businesses_count",
     title: "Количество компаний",
   },
   {
-    key: "influencer_count",
+    key: "users_count",
     title: "Количество инфлюэнсеров",
   },
 ];
@@ -47,8 +46,25 @@ export default function CitiesPage() {
   const [isOpen, setOpen] = useState(false);
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
+  const [search, setSearch] = useState("");
+  const { tableData, setTableData } = useContext(TableContext);
 
-  const { data, isLoading, mutate } = useSWR(`cities`, fetcher);
+  const { data, isLoading, mutate } = useSWR(
+    { url: `city/count?search=${search}` },
+    fetcher
+  );
+
+  useEffect(() => {
+    setTableData({ isLoading: isLoading });
+  }, [isLoading]);
+
+  const [filteredData, setFilteredData] = useState([]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setFilteredData(data.result.map((el) => ({ ...el, name: el.name.ru })));
+    }
+  }, [data]);
 
   const {
     register,
@@ -59,35 +75,33 @@ export default function CitiesPage() {
     resolver: yupResolver(schema),
   });
 
-  if (isLoading) return <Spinner />;
-
   async function save(data: FormSchemaType) {
-    const docRef = await addDoc(collection(db, "cities"), {
-      name: data.name,
-      company_count: 0,
-      influencer_count: 0,
+    const res = await post({
+      url: `city/create`,
+      data: { name: data.name },
     });
-    if (docRef.id) {
+    if (res.statusCode === 200) {
       reset();
       setOpen(false);
       mutate();
     }
   }
 
-  async function edit(data: FormSchemaType) {
-    const docRef = doc(db, "cities", isEdit); // Specify the collection and document ID
-    await setDoc(docRef, {
-      name: data.name,
-    });
-    if (docRef.id) {
+  async function onEdit(data: FormSchemaType) {
+    const res = await edit({
+      url: "city/edit",
+      data: { id: isEdit, name: data.name },
+    }); // Specify the collection and document ID
+    if (res.statusCode === 200) {
       reset();
       setEdit(null);
+      setOpen(false);
       mutate();
     }
   }
 
-  async function remove() {
-    await deleteDoc(doc(db, "cities", isDelete));
+  async function onRemove() {
+    const res = await remove(`city/${isDelete}`);
     setDelete(null);
     mutate();
   }
@@ -96,10 +110,11 @@ export default function CitiesPage() {
     <div>
       <Header title={"Города"} subTitle={""} />
       <Table
-        data={data}
+        onSearch={setSearch}
+        data={filteredData}
         labels={labels}
         onEdit={(id) => {
-          reset(data.find((el) => el.id === id) as any);
+          reset(filteredData.find((el) => el.id === id) as any);
           setEdit(id);
           setOpen(true);
         }}
@@ -119,7 +134,7 @@ export default function CitiesPage() {
         createPortal(
           <ModalSave
             key={isEdit ? "edit-modal" : "add-modal"}
-            onSave={handleSubmit(isEdit ? edit : save)}
+            onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
               setOpen(false);
@@ -146,7 +161,7 @@ export default function CitiesPage() {
           <ModalDelete
             label={"Удалить"}
             close={() => setDelete(null)}
-            onDelete={remove}
+            onDelete={onRemove}
           />,
           document.getElementById("page-wrapper")
         )}

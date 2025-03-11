@@ -1,9 +1,11 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
-import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
 import { fetcher } from "@/fetcher";
+import { useContext, useEffect } from "react";
 import useSWR from "swr";
+import TableProvider, { TableContext } from "@/components/temp/table-provider";
+import Table from "@/components/temp/table";
 
 const labels = [
   {
@@ -17,44 +19,74 @@ const labels = [
   {
     key: "city",
     title: "Город",
-    isObject: true,
   },
   {
-    key: "advertisements",
+    key: "taskCount",
     title: "Объявления",
   },
   {
     key: "category",
     title: "Категория",
-    rounded: true,
   },
   {
     key: "balance",
     title: "Баланс",
   },
   {
-    key: "contact",
+    key: "displayNumber",
     title: "Контакт Мен.",
   },
   {
-    key: "socials",
+    key: "socialNetwork",
     title: "Соцсети",
     link: "https://www.instagram.com/",
   },
   {
-    key: "update",
+    key: "lastTaskDate",
     title: "Последнее объявление",
-    timeStamp: true,
   },
 ];
 
 export default function BusinesPage() {
-  const { data, isLoading } = useSWR("business", fetcher);
-  if (isLoading) return <Spinner />;
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
+
+  const { data, isLoading, mutate } = useSWR(
+    {
+      url: `superadmin/v1/businesses/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      custom: true,
+    },
+    fetcher
+  );
+
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result.items,
+        labels: labels,
+        goTo: "/busines",
+        sort: [
+          "name",
+          "city",
+          "balance",
+          "category",
+          "lastTaskDate",
+          "taskCount",
+        ],
+        filters: ["city", "category", "taskCount"],
+      }));
+    }
+  }, [data]);
+
   return (
     <div>
       <Header title={"Бизнес"} subTitle={"Информация"} />
-      <Table data={data} labels={labels} goTo="/busines" />
+      <Table />
     </div>
   );
 }

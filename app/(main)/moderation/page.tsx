@@ -1,5 +1,10 @@
+"use client";
 import { Header } from "@/components/header/header";
 import { Table } from "@/components/table/table";
+import { TableContext } from "@/components/table/table-context";
+import { fetcher } from "@/fetcher";
+import { useContext, useEffect, useState } from "react";
+import useSWR from "swr";
 
 const labels = [
   {
@@ -7,11 +12,11 @@ const labels = [
     title: "ID",
   },
   {
-    key: "company",
+    key: "business_name",
     title: "Компания",
   },
   {
-    key: "participants",
+    key: "influencer_amount",
     title: "Участников",
   },
   {
@@ -33,10 +38,27 @@ const labels = [
 ];
 
 export default function ModerationPage() {
+  const { tableData, setTableData } = useContext(TableContext);
+  const [filteredData, setFilteredData] = useState([]);
+
+  const { data, isLoading, mutate } = useSWR(
+    { url: `moderation/tasks?status=pending_review&page=1&limit=10` },
+    fetcher
+  );
+
+  useEffect(() => {
+    setTableData({ isLoading: isLoading });
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setFilteredData(data.result.tasks);
+    }
+  }, [data]);
   return (
     <div>
       <Header title={"Модерация"} subTitle={"Информация"} />
-      <Table data={[]} labels={labels} />
+      <Table data={filteredData} labels={labels} />
     </div>
   );
 }
