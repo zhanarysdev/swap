@@ -22,13 +22,13 @@ export function Filters() {
           className="cursor-pointer"
           onClick={() => setSort(true)}
         />
-        {filters && (
+        {filters.length ? (
           <Icon
             name="Filter"
             className="cursor-pointer"
             onClick={() => setFilter(true)}
           />
-        )}
+        ) : null}
         <Search
           placeholder="Поиск"
           type="search"
@@ -50,7 +50,9 @@ export function Filters() {
       {isSort && (
         <Sort
           close={() => setSort(false)}
-          labels={sort ? labels.filter((el) => sort.includes(el.key)) : labels}
+          labels={
+            sort.length ? labels.filter((el) => sort.includes(el.key)) : labels
+          }
         />
       )}
       {isFilter && (

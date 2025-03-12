@@ -67,10 +67,10 @@ const schema = yup
     category: yup.string().required(),
     balance: yup.string().required(),
     contact: yup.string().required(),
-    socials: yup.string().required(),
+    instagram: yup.string().required(),
     update: yup.string(),
     bin: yup.string().required(),
-    phone: yup.string().required(),
+    phoneNumber: yup.string().required(),
     address: yup.string().required(),
     filials: yup
       .array()
@@ -82,9 +82,10 @@ type FormSchemaType = yup.InferType<typeof schema>;
 
 export default function BusinesId() {
   const { id } = useParams();
-  const { data, isLoading } = useSWR(`business/${id}`, fetcher);
-  const advertisement = useSWR("advertisment", fetcher);
-  const cities = useSWR("cities", fetcher);
+  const { data, isLoading } = useSWR(
+    { url: `superadmin/v1/business/${id}`, custom: true },
+    fetcher
+  );
   const [isOpen, setOpen] = useState(false);
 
   const {
@@ -97,7 +98,7 @@ export default function BusinesId() {
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
-  console.log(errors);
+  console.log(data);
 
   const filials = useFieldArray({
     control, // control props comes from useForm (optional: if you are using FormProvider)
@@ -105,20 +106,22 @@ export default function BusinesId() {
   });
 
   useEffect(() => {
-    if (data && data[0]) {
-      reset({ ...data[0], ...{ city: data[0].city.name } });
+    if (data?.result) {
+      reset({ ...data.result });
     }
   }, [data, reset]);
   const { back } = useRouter();
 
-  if (isLoading || advertisement.isLoading || cities.isLoading)
-    return <Spinner />;
+  if (isLoading) return <Spinner />;
 
   function save(data: FormSchemaType) {
     console.log("asldjkl");
     console.log(data);
   }
 
+  if (!data) {
+    return null;
+  }
   return (
     <div>
       <div className="flex justify-between items-center mb-[64px]">
@@ -150,9 +153,7 @@ export default function BusinesId() {
         </div>
       </div>
       <div>
-        <h1 className="text-[36px] font-bold leading-[40px] mb-8">
-          {data[0].name}
-        </h1>
+        <h1 className="text-[36px] font-bold leading-[40px] mb-8"></h1>
         <form
           id="business-form"
           onSubmit={handleSubmit(save)}
@@ -170,9 +171,9 @@ export default function BusinesId() {
                 disabled
                 placeholder="Номер телефона"
                 name="phone"
-                {...register("phone")}
+                {...register("phoneNumber")}
               />
-              <FieldError error={errors.phone?.message} />
+              <FieldError error={errors.phoneNumber?.message} />
             </div>
           </div>
 
@@ -221,7 +222,7 @@ export default function BusinesId() {
             </div>
             <div className="flex flex-col gap-2 w-full">
               <Label label="Город" />
-              <Controller
+              {/* <Controller
                 control={control}
                 render={({ field: { onChange, value } }) => (
                   <Select
@@ -234,7 +235,7 @@ export default function BusinesId() {
                   />
                 )}
                 name={"city"}
-              />
+              /> */}
               <FieldError error={errors.city?.message} />
             </div>
           </div>
@@ -245,10 +246,10 @@ export default function BusinesId() {
               <Input
                 disabled
                 placeholder="Instagram"
-                name="socials"
-                {...register("socials")}
+                name="instagram"
+                {...register("instagram")}
               />
-              <FieldError error={errors.socials?.message} />
+              <FieldError error={errors.instagram?.message} />
             </div>
             <div className="flex flex-col gap-2 w-full">
               <Label label="Юредический адрес" />
@@ -307,13 +308,13 @@ export default function BusinesId() {
           <h2 className="text-[24px] font-bold leading-7 mb-8">
             История объявлений
           </h2>
-          <Table
+          {/* <Table
             data={advertisement.data}
             filters={false}
             labels={labels}
             number
             goTo="/advertisments"
-          />
+          /> */}
         </div>
       </div>
 

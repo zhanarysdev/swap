@@ -1,13 +1,13 @@
 "use client";
 
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
-import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { TableContext } from "@/components/table/table-context";
+import Table from "@/components/temp/table";
+import { TableContext } from "@/components/temp/table-provider";
 import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
@@ -46,34 +46,50 @@ export default function CitiesPage() {
   const [isOpen, setOpen] = useState(false);
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
-  const [search, setSearch] = useState("");
-  const { tableData, setTableData } = useContext(TableContext);
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
 
   const { data, isLoading, mutate } = useSWR(
-    { url: `city/count?search=${search}` },
+    { url: `city/count?search=${debouncedSearch}&sortBy=${context.sortValue}` },
     fetcher
   );
-
-  useEffect(() => {
-    setTableData({ isLoading: isLoading });
-  }, [isLoading]);
-
-  const [filteredData, setFilteredData] = useState([]);
-
-  useEffect(() => {
-    if (data?.result) {
-      setFilteredData(data.result.map((el) => ({ ...el, name: el.name.ru })));
-    }
-  }, [data]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
+
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result.map((el) => ({ ...el, name: el.name.ru })),
+        labels: labels,
+        control: {
+          action: () => setOpen(true),
+          label: "Добавить",
+        },
+        onDelete: (id) => setDelete(id),
+        onEdit: (id) => {
+          setValue(
+            "name",
+            data.result.find((el) => el.id === id)?.name.ru as any
+          );
+          setOpen(true);
+          setEdit(id);
+        },
+      }));
+    }
+  }, [data]);
 
   async function save(data: FormSchemaType) {
     const res = await post({
@@ -109,26 +125,7 @@ export default function CitiesPage() {
   return (
     <div>
       <Header title={"Города"} subTitle={""} />
-      <Table
-        onSearch={setSearch}
-        data={filteredData}
-        labels={labels}
-        onEdit={(id) => {
-          reset(filteredData.find((el) => el.id === id) as any);
-          setEdit(id);
-          setOpen(true);
-        }}
-        onDelete={(id) => {
-          setDelete(id);
-        }}
-        control={{
-          label: "Добавить",
-          action: () => {
-            reset();
-            setOpen(true);
-          },
-        }}
-      />
+      <Table />
 
       {isOpen &&
         createPortal(

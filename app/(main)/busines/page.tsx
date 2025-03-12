@@ -4,7 +4,7 @@ import { Header } from "@/components/header/header";
 import { fetcher } from "@/fetcher";
 import { useContext, useEffect } from "react";
 import useSWR from "swr";
-import TableProvider, { TableContext } from "@/components/temp/table-provider";
+import { TableContext } from "@/components/temp/table-provider";
 import Table from "@/components/temp/table";
 
 const labels = [

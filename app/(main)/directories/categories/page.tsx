@@ -1,13 +1,13 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
-import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { TableContext } from "@/components/table/table-context";
-import { fetcher } from "@/fetcher";
+import Table from "@/components/temp/table";
+import { TableContext } from "@/components/temp/table-provider";
+import { edit, fetcher, post, remove } from "@/fetcher";
 import { db } from "@/firebase";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
@@ -47,62 +47,81 @@ export default function DirCategoriesPage() {
   const [isOpen, setOpen] = useState(false);
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
-
-  const [filteredData, setFilteredData] = useState([]);
-
-  const { tableData, setTableData } = useContext(TableContext);
-
-  const { data, isLoading, mutate } = useSWR(
-    { url: `business/category/list` },
-    fetcher
-  );
-
-  useEffect(() => {
-    setTableData({ isLoading: isLoading });
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (data?.result) {
-      setFilteredData(data.result);
-    }
-  }, [data]);
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
 
+  const { data, isLoading, mutate } = useSWR(
+    {
+      url: `business/category/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+    },
+    fetcher
+  );
+
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result,
+        labels: labels,
+        onDelete: (id) => setDelete(id),
+        control: {
+          action: () => setOpen(true),
+          label: "Добавить",
+        },
+        onEdit: (id) => {
+          setValue("name", data.result.find((el) => el.id === id)?.name as any);
+          setOpen(true);
+          setEdit(id);
+        },
+      }));
+    }
+  }, [data]);
+
   async function save(data: FormSchemaType) {
-    const docRef = await addDoc(collection(db, "dir_categories"), {
-      name: data.name,
-      company_count: 0,
-      influencer_count: 0,
+    const res = await post({
+      url: `business/category/create`,
+      data: {
+        name: data.name,
+        company_count: 0,
+        influencer_count: 0,
+      },
     });
-    if (docRef.id) {
+    if (res.statusCode === 200) {
       reset();
       setOpen(false);
       mutate();
     }
   }
 
-  async function edit(data: FormSchemaType) {
-    const docRef = doc(db, "dir_categories", isEdit); // Specify the collection and document ID
-    await setDoc(docRef, {
-      name: data.name,
-    });
-    if (docRef.id) {
+  async function onEdit(data: FormSchemaType) {
+    const res = await edit({
+      url: "business/category/edit",
+      data: { id: isEdit, name: data.name },
+    }); // Specify the collection and document ID
+    if (res.statusCode === 200) {
       reset();
       setEdit(null);
+      setOpen(false);
       mutate();
     }
   }
 
-  async function remove() {
-    await deleteDoc(doc(db, "dir_categories", isDelete));
+  async function onRemove() {
+    const res = await remove(`business/category/${isDelete}`);
     setDelete(null);
     mutate();
   }
@@ -110,27 +129,13 @@ export default function DirCategoriesPage() {
   return (
     <div>
       <Header title={"Категории бизнеса"} subTitle={""} />
-      <Table
-        data={filteredData}
-        labels={labels}
-        onEdit={(id) => {
-          reset(data.find((el) => el.id === id) as any);
-          setEdit(id);
-        }}
-        onDelete={(id) => {
-          setDelete(id);
-        }}
-        control={{
-          label: "Добавить",
-          action: () => setOpen(true),
-        }}
-      />
+      <Table />
 
       {(isOpen || isEdit) &&
         createPortal(
           <ModalSave
             key={isEdit ? "edit-modal" : "add-modal"}
-            onSave={handleSubmit(isEdit ? edit : save)}
+            onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
               reset({ name: "" });
@@ -157,7 +162,7 @@ export default function DirCategoriesPage() {
           <ModalDelete
             label={"Удалить"}
             close={() => setDelete(null)}
-            onDelete={remove}
+            onDelete={onRemove}
           />,
           document.getElementById("page-wrapper")
         )}
