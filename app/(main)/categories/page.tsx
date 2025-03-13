@@ -5,7 +5,6 @@ import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
-import { Select } from "@/components/select/select";
 import Table from "@/components/temp/table";
 import {
   default_context,
@@ -15,7 +14,7 @@ import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import useSWR from "swr";
 import * as yup from "yup";
 

@@ -98,7 +98,6 @@ export default function BusinesId() {
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
-  console.log(data);
 
   const filials = useFieldArray({
     control, // control props comes from useForm (optional: if you are using FormProvider)

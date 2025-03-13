@@ -8,12 +8,15 @@ import { InputLink } from "@/components/input/input-link";
 import { InputPhone } from "@/components/input/input-phone";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { Select } from "@/components/select/select";
+import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
+import { fetcher } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
+import useSWR from "swr";
 import * as y from "yup";
 
 const labels = [
@@ -64,6 +67,14 @@ export default function AdsIdPage() {
   const [isEdit, setEdit] = useState(false);
   const [isDelete, setDelete] = useState(false);
 
+  const { data, isLoading } = useSWR(
+    {
+      url: `tasks/${id}`,
+    },
+    fetcher
+  );
+
+  console.log(data);
   const {
     handleSubmit,
     register,
@@ -74,6 +85,15 @@ export default function AdsIdPage() {
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
+
+  useEffect(() => {
+    if (data?.result) {
+      reset({ ...data.result });
+    }
+  }, [data, reset]);
+  const { back } = useRouter();
+
+  if (isLoading) return <Spinner />;
 
   const save = async (data: FormData) => {
     console.log(data);
