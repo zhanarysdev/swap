@@ -4,7 +4,10 @@ import { Header } from "@/components/header/header";
 import { fetcher } from "@/fetcher";
 import { useContext, useEffect } from "react";
 import useSWR from "swr";
-import { TableContext } from "@/components/temp/table-provider";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
 import Table from "@/components/temp/table";
 
 const labels = [
@@ -81,6 +84,9 @@ export default function BusinesPage() {
         filters: ["city", "category", "taskCount"],
       }));
     }
+    return () => {
+      setContext(default_context);
+    };
   }, [data]);
 
   return (

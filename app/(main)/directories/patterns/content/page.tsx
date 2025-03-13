@@ -1,4 +1,5 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
@@ -7,9 +8,12 @@ import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { TableContext } from "@/components/table/table-context";
-import { fetcher } from "@/fetcher";
+import Table from "@/components/temp/table";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
+import { edit, fetcher, post, remove } from "@/fetcher";
 import { db } from "@/firebase";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
@@ -37,7 +41,7 @@ const labels = [
 const schema = yup
   .object({
     format: yup.string().required("Oбязательное поле"),
-    type: yup.string().required("Oбязательное поле"),
+    name: yup.string().required("Oбязательное поле"),
   })
   .required();
 type FormSchemaType = yup.InferType<typeof schema>;
@@ -47,20 +51,15 @@ export default function ContentPage() {
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
 
-  const { tableData, setTableData } = useContext(TableContext);
-  const [filteredData, setFilteredData] = useState([]);
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
 
-  const { data, isLoading, mutate } = useSWR({ url: `content/list` }, fetcher);
-
-  useEffect(() => {
-    setTableData({ isLoading: isLoading });
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (data?.result) {
-      setFilteredData(data.result);
-    }
-  }, [data]);
+  const { data, isLoading, mutate } = useSWR(
+    {
+      url: `content/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+    },
+    fetcher
+  );
 
   const {
     register,
@@ -68,37 +67,64 @@ export default function ContentPage() {
     control,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
 
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result,
+        labels: labels,
+        control: {
+          action: () => setOpen(true),
+          label: "Добавить",
+        },
+        onDelete: (id) => setDelete(id),
+        onEdit: (id) => {
+          reset(data.result.find((el) => el.id === id) as any);
+          setOpen(true);
+          setEdit(id);
+        },
+      }));
+    }
+    return () => {
+      setContext(default_context);
+    };
+  }, [data]);
+
   async function save(data: FormSchemaType) {
-    const docRef = await addDoc(collection(db, "content"), {
-      format: data.format,
-      type: data.type,
+    const res = await post({
+      url: `content/create`,
+      data: { name: data.name, format: data.format },
     });
-    if (docRef.id) {
+    if (res.statusCode === 200) {
       reset();
       setOpen(false);
       mutate();
     }
   }
 
-  async function edit(data: FormSchemaType) {
-    const docRef = doc(db, "content", isEdit); // Specify the collection and document ID
-    await setDoc(docRef, {
-      format: data.format,
-      type: data.type,
-    });
-    if (docRef.id) {
+  async function onEdit(data: FormSchemaType) {
+    const res = await edit({
+      url: "content/edit",
+      data: { id: isEdit, name: data.name, format: data.format },
+    }); // Specify the collection and document ID
+    if (res.statusCode === 200) {
       reset();
       setEdit(null);
       mutate();
     }
   }
 
-  async function remove() {
-    await deleteDoc(doc(db, "content", isDelete));
+  async function onRemove() {
+    const res = await remove(`content/${isDelete}`);
     setDelete(null);
     mutate();
   }
@@ -106,30 +132,16 @@ export default function ContentPage() {
   return (
     <div>
       <Header title={"Контент"} subTitle={""} />
-      <Table
-        data={filteredData}
-        labels={labels}
-        onEdit={(id) => {
-          reset(data.find((el) => el.id === id) as any);
-          setEdit(id);
-        }}
-        onDelete={(id) => {
-          setDelete(id);
-        }}
-        control={{
-          label: "Добавить",
-          action: () => setOpen(true),
-        }}
-      />
+      <Table />
 
       {(isOpen || isEdit) &&
         createPortal(
           <ModalSave
             key={isEdit ? "edit-modal" : "add-modal"}
-            onSave={handleSubmit(isEdit ? edit : save)}
+            onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
-              reset({ type: "", format: "" });
+              reset({ name: "", format: "" });
               setOpen(false);
               setEdit(null);
             }}
@@ -137,24 +149,8 @@ export default function ContentPage() {
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-2">
                 <Label label={"Тип контента"} />
-                <Controller
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      data={value ? value : "Тип"}
-                      options={[
-                        { value: "Aнпакинг", label: "Aнпакинг" },
-                        {
-                          value: "Cелфи с продукцией",
-                          label: "Cелфи с продукцией",
-                        },
-                      ]}
-                      onChange={onChange}
-                    />
-                  )}
-                  name={"type"}
-                />
-                <FieldError error={errors.type?.message} />
+                <Input placeholder="Тип" {...register("name")} />
+                <FieldError error={errors.name?.message} />
               </div>
 
               <div className="flex flex-col gap-2">
@@ -165,8 +161,8 @@ export default function ContentPage() {
                     <Select
                       data={value ? value : "Формат"}
                       options={[
-                        { value: "Видео", label: "Видео" },
-                        { value: "Фото", label: "Фото" },
+                        { value: "video", label: "Видео" },
+                        { value: "photo", label: "Фото" },
                       ]}
                       onChange={onChange}
                     />
@@ -185,7 +181,7 @@ export default function ContentPage() {
           <ModalDelete
             label={"Удалить"}
             close={() => setDelete(null)}
-            onDelete={remove}
+            onDelete={onRemove}
           />,
           document.getElementById("page-wrapper")
         )}

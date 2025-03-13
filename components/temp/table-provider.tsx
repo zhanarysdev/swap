@@ -1,6 +1,23 @@
 "use client";
 
 import { createContext, useState } from "react";
+export const default_context = {
+  search: "",
+  data: [],
+  labels: [],
+  isLoading: false,
+  filters: [],
+  sort: [],
+  sortValue: "",
+  pure: false,
+  number: false,
+  onDelete: null,
+  onEdit: null,
+  onSearch: null,
+  goTo: null,
+  control: null,
+  filterValue: "",
+};
 
 export const TableContext = createContext({
   context: {

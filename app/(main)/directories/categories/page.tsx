@@ -6,7 +6,10 @@ import { Input } from "@/components/input/input";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
 import Table from "@/components/temp/table";
-import { TableContext } from "@/components/temp/table-provider";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
 import { edit, fetcher, post, remove } from "@/fetcher";
 import { db } from "@/firebase";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -89,6 +92,9 @@ export default function DirCategoriesPage() {
         },
       }));
     }
+    return () => {
+      setContext(default_context);
+    };
   }, [data]);
 
   async function save(data: FormSchemaType) {

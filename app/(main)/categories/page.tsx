@@ -1,17 +1,19 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Select } from "@/components/select/select";
-import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { fetcher } from "@/fetcher";
-import { db } from "@/firebase";
+import Table from "@/components/temp/table";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
+import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -49,41 +51,75 @@ export default function CategoriesPage() {
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
 
-  const cities = useSWR(`cities`, fetcher);
-  const { data, isLoading, mutate } = useSWR(`categories`, fetcher);
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
+
+  const { data, isLoading, mutate } = useSWR(
+    {
+      url: `categories?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+    },
+    fetcher
+  );
 
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
 
-  if (isLoading || cities.isLoading) return <Spinner />;
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result.map((el) => ({ ...el, name: el.name.ru })),
+        labels: labels,
+        control: {
+          action: () => setOpen(true),
+          label: "Добавить",
+        },
+        onDelete: (id) => setDelete(id),
+        onEdit: (id) => {
+          setValue(
+            "name",
+            data.result.find((el) => el.id === id)?.name.ru as any
+          );
+          setOpen(true);
+          setEdit(id);
+        },
+      }));
+    }
+
+    return () => {
+      setContext(default_context);
+    };
+  }, []);
 
   async function save(data: FormSchemaType) {
-    const docRef = await addDoc(collection(db, "categories"), {
-      name: data.name,
-      city: data.city,
-      count: 0,
+    const res = await post({
+      url: `selection/create`,
+      data: { name: data.name },
     });
-    if (docRef.id) {
+    if (res.statusCode === 200) {
       reset();
       setOpen(false);
       mutate();
     }
   }
 
-  async function edit(data: FormSchemaType) {
-    const docRef = doc(db, "categories", isEdit); // Specify the collection and document ID
-    await setDoc(docRef, {
-      name: data.name,
-      city: data.city,
-    });
-    if (docRef.id) {
+  async function onEdit(data: FormSchemaType) {
+    const res = await edit({
+      url: "selection/edit",
+      data: { id: isEdit, name: data.name },
+    }); // Specify the collection and document ID
+    if (res.statusCode === 200) {
       reset();
       setEdit(null);
       setOpen(false);
@@ -91,8 +127,8 @@ export default function CategoriesPage() {
     }
   }
 
-  async function remove() {
-    await deleteDoc(doc(db, "categories", isDelete));
+  async function onRemove() {
+    const res = await remove(`selection/${isDelete}`);
     setDelete(null);
     mutate();
   }
@@ -100,27 +136,13 @@ export default function CategoriesPage() {
   return (
     <div>
       <Header title={"Подборки категорий"} subTitle={"Информация"} />
-      <Table
-        data={data}
-        labels={labels}
-        onEdit={(id) => {
-          reset(data.find((el) => el.id === id) as any);
-          setEdit(id);
-        }}
-        onDelete={(id) => {
-          setDelete(id);
-        }}
-        control={{
-          label: "Добавить",
-          action: () => setOpen(true),
-        }}
-      />
+      <Table />
 
       {(isOpen || isEdit) &&
         createPortal(
           <ModalSave
             key={isEdit ? "edit-modal" : "add-modal"}
-            onSave={handleSubmit(isEdit ? edit : save)}
+            onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
               reset({ name: "", city: "" });
@@ -139,7 +161,7 @@ export default function CategoriesPage() {
               </div>
 
               <div>
-                <Controller
+                {/* <Controller
                   control={control}
                   render={({ field: { onChange, value } }) => (
                     <Select
@@ -152,7 +174,7 @@ export default function CategoriesPage() {
                     />
                   )}
                   name={"city"}
-                />
+                /> */}
                 <FieldError error={errors.city?.message} />
               </div>
             </div>
@@ -165,7 +187,7 @@ export default function CategoriesPage() {
           <ModalDelete
             label={"Удалить"}
             close={() => setDelete(null)}
-            onDelete={remove}
+            onDelete={onRemove}
           />,
           document.getElementById("page-wrapper")
         )}

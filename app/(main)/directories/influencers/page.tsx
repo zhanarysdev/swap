@@ -1,17 +1,18 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { Label } from "@/components/input/label";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
-import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { TableContext } from "@/components/table/table-context";
-import { fetcher } from "@/fetcher";
-import { db } from "@/firebase";
+import Table from "@/components/temp/table";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
+import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm } from "react-hook-form";
@@ -66,58 +67,82 @@ export default function InfluencersPage() {
   const [isDelete, setDelete] = useState<null | string>(null);
   const [isEdit, setEdit] = useState<null | string>(null);
 
-  const { tableData, setTableData } = useContext(TableContext);
-  const [filteredData, setFilteredData] = useState([]);
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
 
-  const { data, isLoading, mutate } = useSWR(`rank/list`, fetcher);
-
-  useEffect(() => {
-    setTableData({ isLoading: isLoading });
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (data?.result) {
-      setFilteredData(data.result);
-    }
-  }, [data]);
+  const { data, isLoading, mutate } = useSWR(
+    {
+      url: `rank/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+    },
+    fetcher
+  );
 
   const {
     register,
     handleSubmit,
-    reset,
-    watch,
     formState: { errors },
+    reset,
+    setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
 
-  if (isLoading) return <Spinner />;
-  async function remove() {
-    await deleteDoc(doc(db, "dir_categories", isDelete));
-    setDelete(null);
-    mutate();
-  }
-  const save = async (data: FormSchemaType) => {
-    const docRef = await addDoc(collection(db, "influencers_rating"), {
-      name: data.name,
-      tariff: data.tariff,
-      rating: `${data.since}-${data.to}`,
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result,
+        labels: labels,
+        control: {
+          action: () => setOpen(true),
+          label: "Добавить",
+        },
+        onDelete: (id) => setDelete(id),
+        onEdit: (id) => {
+          setValue("name", data.result.find((el) => el.id === id)?.name as any);
+          setOpen(true);
+          setEdit(id);
+        },
+      }));
+    }
+    return () => {
+      setContext(default_context);
+    };
+  }, [data]);
+
+  async function save(data: FormSchemaType) {
+    const res = await post({
+      url: `rank/create`,
+      data: {
+        name: data.name,
+        price: data.tariff,
+        min_rating: data.since,
+        max_rating: data.to,
+      },
     });
-    if (docRef.id) {
+    if (res.statusCode === 200) {
       reset();
       setOpen(false);
       mutate();
     }
-  };
+  }
 
-  async function edit(data: FormSchemaType) {
-    const docRef = doc(db, "influencers_rating", isEdit); // Specify the collection and document ID
-    await setDoc(docRef, {
-      name: data.name,
-      tariff: data.tariff,
-      rating: `${data.since}-${data.to}`,
-    });
-    if (docRef.id) {
+  async function onEdit(data: FormSchemaType) {
+    const res = await edit({
+      url: "rank/edit",
+      data: {
+        id: isEdit,
+        name: data.name,
+        price: data.tariff,
+        min_rating: data.since,
+        max_rating: data.to,
+      },
+    }); // Specify the collection and document ID
+    if (res.statusCode === 200) {
       reset();
       setEdit(null);
       setOpen(false);
@@ -125,44 +150,21 @@ export default function InfluencersPage() {
     }
   }
 
-  console.log(watch("since"));
+  async function onRemove() {
+    const res = await remove(`rank/${isDelete}`);
+    setDelete(null);
+    mutate();
+  }
 
   return (
     <div>
       <Header title={"Рейтинг инфлюэнсеров"} subTitle={""} />
-      <Table
-        control={{
-          action: () => setOpen(true),
-          label: "Добавить",
-        }}
-        data={filteredData}
-        onEdit={(id) => {
-          reset(
-            data.find((el) => {
-              const rat = el.rating.split("-");
-              if (el.id === id) {
-                return {
-                  name: el.name,
-                  tariff: el.tariff,
-                  since: rat[0],
-                  to: rat[1],
-                };
-              }
-            }) as any
-          );
-          setEdit(id);
-          setOpen(true);
-        }}
-        onDelete={(id) => {
-          setDelete(id);
-        }}
-        labels={labels}
-      />
+      <Table />
 
       {isOpen &&
         createPortal(
           <ModalSave
-            onSave={handleSubmit(isEdit ? edit : save)}
+            onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
             close={() => setOpen(false)}
           >
@@ -202,7 +204,7 @@ export default function InfluencersPage() {
           <ModalDelete
             label={"Удалить"}
             close={() => setDelete(null)}
-            onDelete={remove}
+            onDelete={onRemove}
           />,
           document.getElementById("page-wrapper")
         )}
