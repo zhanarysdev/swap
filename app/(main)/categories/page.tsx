@@ -127,7 +127,7 @@ export default function CategoriesPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`selection/${isDelete}`);
+    const res = await remove(`selection/${isDelete}` as any);
     setDelete(null);
     mutate();
   }

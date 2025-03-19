@@ -17,6 +17,7 @@ export const default_context = {
   goTo: null,
   control: null,
   filterValue: "",
+  checked: []
 };
 
 export const TableContext = createContext({
@@ -36,6 +37,7 @@ export const TableContext = createContext({
     goTo: null,
     control: null,
     filterValue: "",
+    checked: []
   },
   setContext: (data) => data,
 });
@@ -57,6 +59,7 @@ export default function TableProvider({ children }) {
     onSearch: null,
     control: null,
     filterValue: "",
+    checked: []
   });
   return (
     <TableContext value={{ context, setContext }}>{children}</TableContext>

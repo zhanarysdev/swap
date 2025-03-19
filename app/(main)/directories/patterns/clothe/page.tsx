@@ -242,7 +242,7 @@ export default function CitiesPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`clothes/${isDelete}`);
+    const res = await remove(`clothes/${isDelete}` as any);
     setDelete(null);
     mutate();
   }

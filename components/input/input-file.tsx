@@ -2,38 +2,37 @@ import { ComponentProps, useState } from "react";
 import { Icon } from "../icons";
 
 type InputFileType = ComponentProps<"input"> & {
-  value: string;
-  onChange: (e: string) => void;
+  value?: string;
+  onChange: (file: File) => void;
+  placeholder?: string;
 };
 
 export function InputFile({ value, onChange, placeholder }: InputFileType) {
-  const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      onChange(e.dataTransfer.files[0]);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onChange(e.target.files[0].name);
-      setFile(e.target.files[0]);
+      onChange(e.target.files[0]);
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(true);
   };
 
-  const handleDragLeave = (e) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -41,7 +40,7 @@ export function InputFile({ value, onChange, placeholder }: InputFileType) {
 
   return (
     <div
-      className="w-full cursor-pointer"
+      className={`w-full cursor-pointer ${dragActive ? 'border-2 border-dashed border-blue-500' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

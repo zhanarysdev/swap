@@ -22,6 +22,7 @@ const labels = [
   {
     key: "city",
     title: "Город",
+    name: true,
   },
   {
     key: "taskCount",
@@ -30,6 +31,7 @@ const labels = [
   {
     key: "category",
     title: "Категория",
+    category: true,
   },
   {
     key: "balance",
@@ -54,7 +56,7 @@ export default function BusinesPage() {
   const { context, setContext } = useContext(TableContext);
   const debouncedSearch = useDebounce(context.search, 500);
 
-  const { data, isLoading } = useSWR(
+  const { data, isLoading, mutate } = useSWR(
     {
       url: `superadmin/v1/businesses/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue}`,
       custom: true,
@@ -65,6 +67,12 @@ export default function BusinesPage() {
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
+
+  useEffect(() => {
+    if (debouncedSearch) {
+      mutate();
+    }
+  }, [debouncedSearch]);
 
   useEffect(() => {
     if (data?.result) {
@@ -84,10 +92,13 @@ export default function BusinesPage() {
         filters: ["city", "category", "taskCount"],
       }));
     }
+  }, [data, setContext]);
+
+  useEffect(() => {
     return () => {
       setContext(default_context);
     };
-  }, [data]);
+  }, []);
 
   return (
     <div>

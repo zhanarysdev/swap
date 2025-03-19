@@ -92,11 +92,13 @@ export default function CitiesPage() {
         },
       }));
     }
+  }, [data]);
 
+  useEffect(() => {
     return () => {
       setContext(default_context);
     };
-  }, [data]);
+  }, []);
 
   async function save(data: FormSchemaType) {
     const res = await post({
@@ -124,7 +126,7 @@ export default function CitiesPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`city/${isDelete}`);
+    const res = await remove({ url: `city/${isDelete}` });
     setDelete(null);
     mutate();
   }

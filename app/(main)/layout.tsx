@@ -7,7 +7,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     <TableProvider>
       <div className="flex h-full">
         <SideBar />
-        <div id="page-wrapper" className="bg-black flex-1 p-6 h-full relative">
+        <div
+          id="page-wrapper"
+          className="bg-black flex-1 p-6 min-h-full h-fit relative"
+        >
           {children}
         </div>
       </div>

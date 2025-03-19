@@ -124,7 +124,7 @@ export default function ContentPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`content/${isDelete}`);
+    const res = await remove(`content/${isDelete}` as any);
     setDelete(null);
     mutate();
   }

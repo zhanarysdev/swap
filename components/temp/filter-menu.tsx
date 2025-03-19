@@ -4,6 +4,7 @@ import { Icon } from "../icons";
 
 export const FilterMenu = ({ el, data }) => {
   const [isOpen, setOpen] = useState(false);
+  console.log(data);
   return (
     <div key={el.key} className="flex flex-col gap-2">
       <div
@@ -18,7 +19,11 @@ export const FilterMenu = ({ el, data }) => {
           {data.map((item, index) =>
             item[el.key] ? (
               <div key={index} className="flex items-center justify-between">
-                <span>{item[el.key]}</span>
+                <span>
+                  {typeof item[el.key] === "object"
+                    ? item[el.key]?.name
+                    : item[el.key]}
+                </span>
                 <Checkbox styles="w-auto pl-[21px] mb-0" />
               </div>
             ) : null

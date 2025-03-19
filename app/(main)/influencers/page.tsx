@@ -1,4 +1,5 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
@@ -7,9 +8,12 @@ import { Label } from "@/components/input/label";
 import { Text } from "@/components/input/text";
 import { ModalSave } from "@/components/modal/modal-save";
 import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { TableContext } from "@/components/table/table-context";
-import { fetcher } from "@/fetcher";
+import Table from "@/components/temp/table";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
+import { fetcher, post, postFile } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -29,6 +33,7 @@ const labels = [
   {
     key: "city",
     title: "Город",
+    name: true,
   },
   {
     key: "advertisment",
@@ -37,6 +42,7 @@ const labels = [
   {
     key: "gender",
     title: "Пол",
+    gender: true
   },
   {
     key: "age",
@@ -45,15 +51,17 @@ const labels = [
   {
     key: "rank",
     title: "Рейтинг",
+    rank: true,
   },
   {
     key: "category",
     title: "Категория",
-    rounded: true,
+    category: true,
   },
   {
     key: "restriction_ad",
     title: "Ограничения",
+    restriction: true,
   },
 ];
 
@@ -63,8 +71,8 @@ const schema = y
   .object({
     label: y.string().required("Oбязательное поле"),
     text: y.string().max(300).required("Oбязательное поле"),
-    link: y.string().required("Oбязательное поле"),
-    photo: y.string().required("Oбязательное поле"),
+    link: y.string().required("Oбязательное поле"), 
+    photo: y.mixed().required("Oбязательное поле"),
   })
   .required();
 
@@ -73,23 +81,53 @@ type FormData = y.InferType<typeof schema>;
 export default function ModerationPage() {
   const [isOpen, setOpen] = useState(false);
 
-  const { tableData, setTableData } = useContext(TableContext);
-  const [filteredData, setFilteredData] = useState([]);
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
 
   const { data, isLoading, mutate } = useSWR(
-    { url: `influencer/list?page=1&page_size=10` },
-    fetcher
+    {
+      url: `influencer/list`,
+      data: {
+        page: 1,
+        search: debouncedSearch,
+        sortBy: context.sortValue,
+      },
+    },
+    post
   );
 
   useEffect(() => {
-    setTableData({ isLoading: isLoading });
+    setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
 
   useEffect(() => {
-    if (data?.result) {
-      setFilteredData(data.result.items);
+    if (debouncedSearch) {
+      mutate();
     }
-  }, [data]);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result.items.map(el => ({...el, category: el.categories, rank: el.rank.name, advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`})),
+        labels: labels,
+        goTo: "/influencers",
+        sort: sort,
+        filters: ["city", "category", "taskCount"],
+        control: {
+          label: "Отправить уведомление",
+          action: () => setOpen(true),
+        },
+      }));
+    }
+  }, [data, setContext]);
+
+  useEffect(() => {
+    return () => {
+      setContext(default_context);
+    };
+  }, []);
 
   const {
     handleSubmit,
@@ -101,23 +139,36 @@ export default function ModerationPage() {
     resolver: yupResolver(schema),
   });
 
-  if (isLoading) return <Spinner />;
 
-  const save = (data: FormData) => {};
+  const save = async (data: FormData) => {
+    const formData = new FormData();
+
+    // Add required fields according to API format
+    formData.append("user_ids", context.checked.join(','));
+    formData.append("message", data.text || '');
+    formData.append("from", data.label || '');
+    formData.append("navigate", data.link || ''); // Using link as navigate parameter
+    formData.append("link", data.link || '');
+    
+    // Handle image file
+    if (data.photo instanceof File) {
+      formData.append("image", data.photo);
+    }
+
+    const res = await postFile({
+      url: "notification/send",
+      data: formData,
+    });
+    
+    if (res.success) {
+      setOpen(false);
+    }
+  };
 
   return (
     <div>
       <Header title={"Инфлюенсеры"} subTitle={"Информация"} />
-      <Table
-        control={{
-          label: "Отправить уведомление",
-          action: () => setOpen(true),
-        }}
-        sort={sort}
-        goTo={`/influencers`}
-        data={filteredData}
-        labels={labels}
-      />
+      <Table />
       {isOpen &&
         createPortal(
           <ModalSave
@@ -156,7 +207,7 @@ export default function ModerationPage() {
                   render={({ field: { value, onChange } }) => (
                     <InputFile
                       placeholder="Перенесите сюда файл"
-                      value={value}
+                      value={value instanceof File ? value.name : ""}
                       onChange={onChange}
                     />
                   )}

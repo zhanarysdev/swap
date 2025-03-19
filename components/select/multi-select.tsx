@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../icons";
 
-export const Select = ({
+export const MultiSelect = ({
   data,
   options,
   onChange,
 }: {
-  data: string;
+  data: string[];
   options: { value: string; label: string }[];
-  onChange: (v: string) => void;
+  onChange: (v: string[]) => void;
 }) => {
   const [isOpen, setOpen] = useState(false);
-  const [value, setValue] = useState(() => data);
+  const [curValue, setValue] = useState(() => data);
   const selectRef = useRef<HTMLDivElement>(null); // Ref to detect outside clicks
 
   useEffect(() => {
@@ -44,10 +44,13 @@ export const Select = ({
           }`}
         >
           <option
-            value={value}
+            value={curValue}
             className="cursor-pointer py-[1px] text-base leading-5 font-medium"
           >
-            {options.find((el) => el.value === value)?.label}
+            {curValue
+              .map((val) => options.find((el) => el.value === val)?.label)
+              .filter(Boolean)
+              .join(", ")}
           </option>
         </div>
 
@@ -66,9 +69,15 @@ export const Select = ({
               key={value}
               className="hover:bg-lightGrey cursor-pointer placeholder:text-grey rounded-2xl py-[15px] px-[12px] text-base leading-5 font-medium"
               onClick={() => {
-                setValue(value);
-                onChange(value);
-                setOpen(false);
+                if (curValue.includes(value)) {
+                  const updated = curValue.filter((v) => v !== value);
+                  setValue(updated);
+                  onChange(updated);
+                } else {
+                  setValue((old) => [...old, value]);
+                  onChange([...curValue, value]);
+                  setOpen(false);
+                }
               }}
             >
               {label}

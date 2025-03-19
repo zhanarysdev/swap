@@ -9,7 +9,7 @@ export function InputButton({ add, ...props }: InputButtonProps) {
   return (
     <div className="bg-[#333333] w-full rounded-2xl flex items-center">
       <input
-        className="bg-transparent placeholder:text-grey  py-[15px] px-[25px] text-base leading-5 font-medium"
+        className="w-full bg-transparent placeholder:text-grey  py-[15px] px-[25px] text-base leading-5 font-medium"
         {...props}
       />
       <div

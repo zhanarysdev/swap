@@ -1,6 +1,8 @@
 "use client";
+import { Button, ButtonBG } from "@/components/button/button";
 import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
+import { Icon } from "@/components/icons";
 import Table from "@/components/temp/table";
 import {
   default_context,
@@ -43,6 +45,7 @@ const labels = [
   {
     key: "has_restriction",
     title: "Ограничения",
+    boolean: true,
   },
   {
     key: "status",
@@ -74,14 +77,25 @@ export default function Ads() {
         goTo: "/ads",
       }));
     }
+  }, [data]);
+
+  useEffect(() => {
     return () => {
       setContext(default_context);
     };
-  }, [data]);
+  }, []);
 
   return (
     <div>
-      <Header title={"Объявления"} subTitle={"Информация"} />
+      <div className="flex justify-between items-start">
+        <Header title={"Объявления"} subTitle={"Информация"} />
+        <Button
+          styles="items-center"
+          preIcon={<Icon name={"Plus"} />}
+          bg={ButtonBG.grey}
+          label={"Создать подборку"}
+        />
+      </div>
       <Table />
     </div>
   );

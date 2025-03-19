@@ -127,7 +127,7 @@ export default function DirCategoriesPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`business/category/${isDelete}`);
+    const res = await remove(`business/category/${isDelete}` as any);
     setDelete(null);
     mutate();
   }

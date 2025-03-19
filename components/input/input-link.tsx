@@ -1,4 +1,10 @@
-export function InputLink({ value, label }: { value?: string; label: string }) {
+export function InputLink({
+  value,
+  label,
+}: {
+  value?: string;
+  label: string | string[];
+}) {
   return (
     <a
       href={value ? value : "#"}
@@ -6,7 +12,7 @@ export function InputLink({ value, label }: { value?: string; label: string }) {
         value ? "cursor-pointer" : "cursor-default"
       } rounded-2xl py-[16px] h-[52px] px-[25px] text-base leading-5 font-medium`}
     >
-      {label}
+      {typeof label !== "object" ? label : label.map((el) => el)}
     </a>
   );
 }

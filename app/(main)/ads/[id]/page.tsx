@@ -48,8 +48,10 @@ const labels = [
 
 const schema = y
   .object({
+    description: y.string().required("Oбязательное поле"),
+    branch: y.string().required("Oбязательное поле"),
     restriction: y.string().required("Oбязательное поле"),
-    name: y.string().required("Oбязательное поле"),
+    business_name: y.string().required("Oбязательное поле"),
     rating: y.string().required("Oбязательное поле"),
     instagram: y.string().required("Oбязательное поле"),
     phone: y.string().required("Oбязательное поле"),
@@ -67,12 +69,7 @@ export default function AdsIdPage() {
   const [isEdit, setEdit] = useState(false);
   const [isDelete, setDelete] = useState(false);
 
-  const { data, isLoading } = useSWR(
-    {
-      url: `tasks/${id}`,
-    },
-    fetcher
-  );
+  const { data, isLoading, mutate } = useSWR({ url: `tasks/${id}` }, fetcher);
 
   console.log(data);
   const {
@@ -88,7 +85,7 @@ export default function AdsIdPage() {
 
   useEffect(() => {
     if (data?.result) {
-      reset({ ...data.result });
+      reset({ ...data.result, branch: data.result.branches[0].address });
     }
   }, [data, reset]);
   const { back } = useRouter();
@@ -132,7 +129,9 @@ export default function AdsIdPage() {
         </div>
       </div>
 
-      <h1 className="text-[36px] font-bold leading-[40px] mb-8">Gippo</h1>
+      <h1 className="text-[36px] font-bold leading-[40px] mb-8">
+        {watch("business_name")}
+      </h1>
       <form className="flex gap-[42px]">
         <div className="flex flex-col gap-6 w-full">
           <div className="bg-lightGrey w-full h-[288px] rounded-2xl flex"></div>
@@ -176,21 +175,23 @@ export default function AdsIdPage() {
         <div className="flex flex-col gap-6 w-full">
           <div>
             {!isEdit ? (
-              <InputLink label={watch("name")} />
+              <InputLink label={watch("description")} />
             ) : (
               <>
-                <Input placeholder="Имя" {...register("name")} />
-                <FieldError error={errors.name?.message} />
+                <Input placeholder="Имя" {...register("description")} />
+                <FieldError error={errors.description?.message} />
               </>
             )}
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={watch("phone") ? watch("phone") : "Номер"} />
+              <InputLink
+                label={watch("branch") ? watch("branch") : "Филиалы"}
+              />
             ) : (
               <>
-                <InputPhone {...register("phone")} />
-                <FieldError error={errors.phone?.message} />
+                <Input {...register("branch")} />
+                <FieldError error={errors.branch?.message} />
               </>
             )}
           </div>
@@ -212,7 +213,7 @@ export default function AdsIdPage() {
                     />
                   )}
                 />
-                <FieldError error={errors.name?.message} />
+                <FieldError error={errors.birthday?.message} />
               </>
             )}
           </div>

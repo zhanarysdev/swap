@@ -83,16 +83,39 @@ export const fetcher = async ({
   });
   return res;
 };
-export const post = async ({ url, data }) => {
-  const res = fetch(`https://swapp.kz/api/v1/${url}`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      SuperToken: token,
-    },
-    body: JSON.stringify(data),
-  }).then((response) => {
+export const post = async ({ url, data, custom = false }) => {
+  const res = fetch(
+    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        SuperToken: token,
+      },
+      body: JSON.stringify(data),
+    }
+  ).then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  });
+  return res;
+};
+export const postFile = async ({ url, data, custom = false }) => {
+  const res = fetch(
+    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "multipart/form-data",
+        SuperToken: token,
+      },
+      body: JSON.stringify(data),
+    }
+  ).then((response) => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -101,16 +124,19 @@ export const post = async ({ url, data }) => {
   return res;
 };
 
-export const edit = async ({ url, data }) => {
-  const res = fetch(`https://swapp.kz/api/v1/${url}`, {
-    method: "PUT",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      SuperToken: token,
-    },
-    body: JSON.stringify(data),
-  }).then((response) => {
+export const edit = async ({ url, data, custom = false }) => {
+  const res = fetch(
+    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        SuperToken: token,
+      },
+      body: JSON.stringify(data),
+    }
+  ).then((response) => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -119,15 +145,24 @@ export const edit = async ({ url, data }) => {
   return res;
 };
 
-export const remove = async (url) => {
-  const res = fetch(`https://swapp.kz/api/v1/${url}`, {
-    method: "DELETE",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      SuperToken: token,
-    },
-  }).then((response) => {
+export const remove = async ({
+  url,
+  custom,
+}: {
+  url: string;
+  custom?: boolean;
+}) => {
+  const res = fetch(
+    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        SuperToken: token,
+      },
+    }
+  ).then((response) => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

@@ -151,7 +151,7 @@ export default function InfluencersPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`rank/${isDelete}`);
+    const res = await remove(`rank/${isDelete}` as any);
     setDelete(null);
     mutate();
   }
