@@ -1,8 +1,8 @@
 import { ComponentProps, useState } from "react";
 import { Icon } from "../icons";
 
-type InputFileType = ComponentProps<"input"> & {
-  value?: string;
+type InputFileType = Omit<ComponentProps<"input">, 'value' | 'onChange'> & {
+  value?: File | null;
   onChange: (file: File) => void;
   placeholder?: string;
 };
@@ -49,6 +49,7 @@ export function InputFile({ value, onChange, placeholder }: InputFileType) {
         type="file"
         className="hidden"
         id="fileInput"
+        multiple
         onChange={handleChange}
       />
       <label
@@ -56,7 +57,7 @@ export function InputFile({ value, onChange, placeholder }: InputFileType) {
         className="bg-[#333333] gap-2 cursor-pointer flex w-full placeholder:text-grey rounded-2xl py-[15px] px-[25px] text-base leading-5 font-medium"
       >
         {value ? (
-          value
+          value.name
         ) : (
           <>
             <Icon name="Upload" />

@@ -4,7 +4,6 @@ import { Icon } from "../icons";
 
 export const FilterMenu = ({ el, data }) => {
   const [isOpen, setOpen] = useState(false);
-  console.log(data);
   return (
     <div key={el.key} className="flex flex-col gap-2">
       <div

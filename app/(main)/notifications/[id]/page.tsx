@@ -159,7 +159,7 @@ export default function InfluencersId() {
             </div>
             <div className="flex flex-col gap-2">
               <Label label={"Фото"} />
-              <InputFile value={""} onChange={undefined} placeholder="Фото" />
+              <InputFile value={""as any} onChange={undefined} placeholder="Фото" />
             </div>
           </div>
           <div className="flex flex-col gap-6 w-full">

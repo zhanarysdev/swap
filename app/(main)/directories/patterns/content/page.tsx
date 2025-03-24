@@ -94,10 +94,13 @@ export default function ContentPage() {
         },
       }));
     }
+  }, [data]);
+
+  useEffect(() => {
     return () => {
       setContext(default_context);
     };
-  }, [data]);
+  }, []);
 
   async function save(data: FormSchemaType) {
     const res = await post({

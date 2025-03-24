@@ -26,16 +26,17 @@ const labels = [
     title: "Участников",
   },
   {
-    key: "total_budget",
+    key: "budget",
     title: "Бюджет",
   },
   {
-    key: "end_date",
+    key: "deadline",
     title: "Срок",
   },
   {
     key: "publication_type",
     title: "Тип",
+    rounded: true,
   },
   {
     key: "ad_type",
@@ -50,6 +51,7 @@ const labels = [
   {
     key: "status",
     title: "Статус",
+    status: true,
   },
 ];
 
@@ -72,7 +74,7 @@ export default function Ads() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result.tasks,
+        data: data.result.tasks.map((el) => ({...el, budget: `${el.spent_budget} / ${el.total_budget}`, deadline: `${ new Date(el.start_date).toLocaleDateString()} - ${new Date(el.end_date).toLocaleDateString()}`})),
         labels: labels,
         goTo: "/ads",
       }));

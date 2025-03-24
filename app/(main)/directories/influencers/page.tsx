@@ -109,10 +109,13 @@ export default function InfluencersPage() {
         },
       }));
     }
+  }, [data]);
+
+  useEffect(() => {
     return () => {
       setContext(default_context);
     };
-  }, [data]);
+  }, []);
 
   async function save(data: FormSchemaType) {
     const res = await post({

@@ -8,13 +8,15 @@ import { InputCalendar } from "@/components/input/input-calendar";
 import { InputLink } from "@/components/input/input-link";
 import { InputPhone } from "@/components/input/input-phone";
 import { ModalDelete } from "@/components/modal/modal-delete";
+import { MultiSelect } from "@/components/select/multi-select";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
-import { fetcher } from "@/fetcher";
+import Table from "@/components/temp/table";
+import { default_context, TableContext } from "@/components/temp/table-provider";
+import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -26,11 +28,11 @@ const labels = [
     title: "ID",
   },
   {
-    key: "company",
+    key: "business_name",
     title: "Компания",
   },
   {
-    key: "members",
+    key: "influencer_amount",
     title: "Участников",
   },
   {
@@ -38,7 +40,7 @@ const labels = [
     title: "Бюджет",
   },
   {
-    key: "type",
+    key: "publication_type",
     title: "Тип",
     rounded: true,
   },
@@ -58,49 +60,107 @@ const schema = y
   .object({
     restriction: y.string().required("Oбязательное поле"),
     name: y.string().required("Oбязательное поле"),
+    image: y.string().required("Oбязательное поле"),
     rating: y.string().required("Oбязательное поле"),
     instagram: y.string().required("Oбязательное поле"),
     phone: y.string().required("Oбязательное поле"),
     birthday: y.string().required("Oбязательное поле"),
     gender: y.string().required("Oбязательное поле"),
     city: y.string().required("Oбязательное поле"),
-    category: y.string().required("Oбязательное поле"),
+    category: y.array().of(y.string()).required(),
   })
   .required();
 type FormData = y.InferType<typeof schema>;
 
 export default function InfluencersId() {
-  const { id } = useParams();
   const { push } = useRouter();
-  const [isEdit, setEdit] = useState(false);
-  const [isDelete, setDelete] = useState(false);
 
-  const { data, isLoading } = useSWR(`influencers/${id}`, fetcher);
+  const { id } = useParams();
+  const [isEdit, setEdit] = useState(false);
+  const { data, isLoading, mutate } = useSWR(
+    { url: `influencer/${id}` },
+    fetcher
+  );
+
+  const cities = useSWR({ url: `city/count` }, fetcher);
+  const categories = useSWR({ url: "categories" }, fetcher);
+
+  const [isOpen, setOpen] = useState(false);
 
   const {
     handleSubmit,
     register,
     reset,
-    watch,
     control,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
 
+  const [isDelete, setDelete] = useState(false);
+
+  const { context, setContext } = useContext(TableContext);
+
+
   useEffect(() => {
-    if (data && data[0]) {
-      reset({ ...data[0], ...{ city: data[0].city.name } });
+    if (data?.result) {
+      reset({
+        ...data.result,
+        city: data.result.city.id,
+        category: data.result.categories.map((el) => el.id),
+        contact: data.result.displayNumber,
+        rating: data.result.rank.name,
+        name: data.result.fullname,
+        phone: data.result.number,
+        restriction: data.result.restricted_ad ? "Да" : "Нет",
+      });
     }
   }, [data, reset]);
 
-  if (isLoading) return <Spinner />;
-
-  const save = async (data: FormData) => {
-    console.log(data);
-  };
+  
+  async function save(data: FormData) {
+    const res = await edit({
+      url: `influencer/${id}`,
+      data: {
+        birthday: data.birthday,
+        category_ids: data.category,
+        city_id: data.city,
+        fullname: data.name,
+        gender: data.gender,
+        instagram: data.instagram,
+        number: data.phone,
+        restricted_ad: data.restriction === "Да" ? true : false,
+      },
+    }); // Specify the collection and document ID
+    if (res.statusCode === 200) {
+      mutate();
+    }
+  }
   const link = watch("instagram")?.split("@");
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+  
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result.tasks,
+        labels: labels,
+        goTo: "/ads",
+        pure: true,
+        number: true,
+      }));
+    }
+  }, [data, setContext]);
 
+  useEffect(() => {
+    return () => {
+      setContext(default_context);
+    };
+  }, []);
+  if (isLoading) return <Spinner />;
   return (
     <div>
       <div className="flex justify-between items-center mb-[64px]">
@@ -112,7 +172,7 @@ export default function InfluencersId() {
             onClick={() => push("/influencers")}
           />
           <span className="text-grey font-bold text-base leading-5">
-            Регистрация: 12.04.2024
+            Регистрация: {new Date(data?.result?.created_at).toLocaleDateString()}
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -132,7 +192,7 @@ export default function InfluencersId() {
       </div>
       <form className="flex gap-[42px]">
         <div className="flex flex-col gap-6 w-full">
-          <div className="bg-lightGrey w-full h-[288px] rounded-2xl flex"></div>
+          <img className={`bg-lightGrey w-full h-[288px] rounded-2xl flex ` } src={data?.result?.image}/>
           <div>
             {!isEdit ? (
               <InputLink
@@ -148,14 +208,16 @@ export default function InfluencersId() {
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={watch("rating")} />
+              <InputLink label={
+                watch("rating") === "silver" ? "Серебро" : watch("rating") === "gold" ? "Золото" : "Бронза" 
+              } />
             ) : (
               <>
                 <Controller
                   render={({ field: { onChange, value } }) => (
                     <Select
                       data={value ? value : "Рейтинг"}
-                      options={[{ value: "Серебро", label: "Серебро" }]}
+                      options={[{ value: "silver", label: "Серебро" }, { value: "gold", label: "Золото" }, { value: "bronze", label: "Бронза" }]}
                       onChange={onChange}
                     />
                   )}
@@ -167,7 +229,7 @@ export default function InfluencersId() {
             )}
           </div>
           <div className="text-grey font-bold text-base leading-5">
-            Обновлен: 12.04.2024
+            Обновлен: {new Date(data?.result?.updated_at).toLocaleDateString()}
           </div>
         </div>
         <div className="flex flex-col gap-6 w-full">
@@ -186,7 +248,13 @@ export default function InfluencersId() {
               <InputLink label={watch("phone") ? watch("phone") : "Номер"} />
             ) : (
               <>
-                <InputPhone {...register("phone")} />
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <InputPhone {...field} />
+                  )}
+                />
                 <FieldError error={errors.phone?.message} />
               </>
             )}
@@ -215,7 +283,7 @@ export default function InfluencersId() {
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={watch("gender") ? watch("gender") : "Пол"} />
+              <InputLink label={watch("gender") === "man" ? "Мужчина" : watch("gender") === "woman" ? "Женшина" : "Пол"} />
             ) : (
               <>
                 <Controller
@@ -225,8 +293,8 @@ export default function InfluencersId() {
                     <Select
                       data={value ? value : "Пол"}
                       options={[
-                        { value: "Мужчина", label: "Мужчина" },
-                        { value: "Женшина", label: "Женшина" },
+                        { value: "man", label: "Мужчина" },
+                        { value: "woman", label: "Женшина" },
                       ]}
                       onChange={onChange}
                     />
@@ -238,19 +306,31 @@ export default function InfluencersId() {
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={watch("city") ? watch("city") : "Город"} />
+              <InputLink
+                label={
+                  cities.data?.result.find((el) => el.id === watch("city"))
+                    ?.name.ru
+                }
+              />
             ) : (
               <>
                 <Controller
                   control={control}
-                  name="city"
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      data={value ? value : "Город"}
-                      onChange={onChange}
-                      options={[{ value: "Алматы", label: "Алматы" }]}
-                    />
-                  )}
+                  render={({ field: { onChange, value } }) => {
+                    return (
+                      <Select
+                        data={value ? value : "Город"}
+                        options={cities.data?.result.map((el: any) => {
+                          return {
+                            label: el.name.ru,
+                            value: el.id,
+                          };
+                        })}
+                        onChange={onChange}
+                      />
+                    );
+                  }}
+                  name={"city"}
                 />
                 <FieldError error={errors.city?.message} />
               </>
@@ -261,25 +341,33 @@ export default function InfluencersId() {
           <div>
             {!isEdit ? (
               <InputLink
-                label={watch("category") ? watch("category") : "Категория"}
+                label={watch("category")
+                  ?.map(
+                    (val) =>
+                      categories.data?.result.find((el) => el.id === val)?.name
+                        .ru
+                  )
+                  .filter(Boolean)
+                  .join(", ")}
               />
             ) : (
               <>
+
                 <Controller
-                  name="category"
                   control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      data={value ? value : "Категория"}
-                      onChange={onChange}
-                      options={[
-                        { value: "bar", label: "bar" },
-                        { value: "ba1", label: "ba1" },
-                        { value: "ba2", label: "ba2" },
-                        { value: "ba3", label: "ba3" },
-                      ]}
-                    />
-                  )}
+                  render={({ field: { onChange, value } }) => {
+                    return (
+                      <MultiSelect
+                        data={value ? value : ["Категория бизнеса"]}
+                        options={categories.data?.result.map((el) => ({
+                          label: el.name.ru,
+                          value: el.id,
+                        }))}
+                        onChange={onChange}
+                      />
+                    );
+                  }}
+                  name={"category"}
                 />
                 <FieldError error={errors.restriction?.message} />
               </>
@@ -318,29 +406,17 @@ export default function InfluencersId() {
       </form>
       <div className="mt-[64px]">
         <h2 className="text-[24px] font-bold leading-7 mb-8">
-          История объявлений
+          Посещения 5/2
         </h2>
-        <Table
-          data={[
-            {
-              id: 0,
-              company: "Gippo",
-              members: "5/7",
-              budget: "25000 / 30000",
-              type: "Reels",
-              format: "Video",
-              status: "Активно",
-            },
-          ]}
-          filters={false}
-          labels={labels}
-          number
-          goTo="/advertisments"
-        />
+        <Table/>
       </div>
       {isDelete &&
         createPortal(
-          <ModalDelete label={"Удалить "} close={() => setDelete(false)} />,
+          <ModalDelete label={"Удалить "} close={() => setDelete(false)} onDelete={() => {
+            edit({url: `influencer/${id}/delete`, data: {id: isDelete}});
+            setDelete(false);
+            push("/influencers");
+          }} />,
           document.getElementById("page-wrapper")
         )}
     </div>

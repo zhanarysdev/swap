@@ -5,15 +5,16 @@ import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { InputCalendar } from "@/components/input/input-calendar";
 import { InputLink } from "@/components/input/input-link";
-import { InputPhone } from "@/components/input/input-phone";
+import { Label } from "@/components/input/label";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
-import { Table } from "@/components/table/table";
+import Table from "@/components/temp/table";
+import { TableContext } from "@/components/temp/table-provider";
 import { fetcher } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -21,7 +22,11 @@ import * as y from "yup";
 
 const labels = [
   {
-    key: "name",
+    key: "id",
+    title: "ID",
+  },
+  {
+    key: "influencer_fullname",
     title: "Имя",
   },
   {
@@ -29,36 +34,52 @@ const labels = [
     title: "Instagram",
   },
   {
-    key: "registration",
+    key: "created_at",
     title: "Регистрация",
   },
   {
-    key: "date",
+    key: "visit_date",
     title: "Дата посещения",
   },
   {
     key: "rating",
     title: "Рейтинг",
+    rank: true,
   },
   {
     key: "status",
     title: "Статус",
+    status: true,
   },
 ];
 
 const schema = y
   .object({
+    image: y.string().required("Oбязательное поле"),
+    rank_bronze: y.string().required("Oбязательное поле"),
+    rank_silver: y.string().required("Oбязательное поле"),
+    rank_gold: y.string().required("Oбязательное поле"),
+    rank_platinum: y.string().required("Oбязательное поле"),
     description: y.string().required("Oбязательное поле"),
     branch: y.string().required("Oбязательное поле"),
+    created_at: y.string().required("Oбязательное поле"),
     restriction: y.string().required("Oбязательное поле"),
+    budget: y.string().required("Oбязательное поле"),
     business_name: y.string().required("Oбязательное поле"),
     rating: y.string().required("Oбязательное поле"),
     instagram: y.string().required("Oбязательное поле"),
     phone: y.string().required("Oбязательное поле"),
     birthday: y.string().required("Oбязательное поле"),
+    influencer_count: y.string().required("Oбязательное поле"),
     gender: y.string().required("Oбязательное поле"),
     city: y.string().required("Oбязательное поле"),
     category: y.string().required("Oбязательное поле"),
+    is_bad_words_allowed: y.boolean().required("Oбязательное поле"),
+    clothing_type: y.string().required("Oбязательное поле"),
+    start_date: y.string().required("Oбязательное поле"),
+    end_date: y.string().required("Oбязательное поле"),
+    publication_type: y.string().required("Oбязательное поле"),
+    ad_type: y.string().required("Oбязательное поле"),
   })
   .required();
 type FormData = y.InferType<typeof schema>;
@@ -68,6 +89,7 @@ export default function AdsIdPage() {
   const { push } = useRouter();
   const [isEdit, setEdit] = useState(false);
   const [isDelete, setDelete] = useState(false);
+  const {context, setContext} = useContext(TableContext);
 
   const { data, isLoading, mutate } = useSWR({ url: `tasks/${id}` }, fetcher);
 
@@ -85,10 +107,22 @@ export default function AdsIdPage() {
 
   useEffect(() => {
     if (data?.result) {
-      reset({ ...data.result, branch: data.result.branches[0].address });
+      reset({ ...data.result, branch: data.result.branches[0].address, 
+        budget: `${data.result.spent_budget} / ${data.result.budget} ₸`,
+        influencer_count: data.result.influencer_amount,
+        rank_bronze: data.result.rewards.find(r => r.rank === 'bronze').price, rank_silver: data.result.rewards.find(r => r.rank === 'silver').price, rank_gold: data.result.rewards.find(r => r.rank === 'gold').price, rank_platinum: data.result.rewards.find(r => r.rank === 'platinum').price });
     }
   }, [data, reset]);
   const { back } = useRouter();
+
+  useEffect(() => {
+    setContext(old => ({...old, data: data?.result.bookings.map((el) => ({...el, created_at: new Date(el.created_at).toLocaleDateString(), 
+      visit_date:  `${new Date(el.visit_date).toLocaleDateString()} ${el.start_time} - ${el.end_time} `
+      //there should be ranks 
+      , rating: el.influencer_rank})) ?? [], pure: true, labels: labels, number: true}))
+  }, [data])
+
+
 
   if (isLoading) return <Spinner />;
 
@@ -134,213 +168,79 @@ export default function AdsIdPage() {
       </h1>
       <form className="flex gap-[42px]">
         <div className="flex flex-col gap-6 w-full">
-          <div className="bg-lightGrey w-full h-[288px] rounded-2xl flex"></div>
-          <div>
-            {!isEdit ? (
-              <InputLink
-                label={watch("instagram")}
-                value={`https://www.instagram.com/${link ? link[1] : ""}`}
-              />
-            ) : (
-              <>
-                <Input placeholder="Instagram" {...register("instagram")} />
-                <FieldError error={errors.instagram?.message} />
-              </>
-            )}
+          <div className={`bg-lightGrey w-full h-[288px] rounded-2xl flex ${watch("image") ? "bg-cover bg-center" : ""}`} style={{ backgroundImage: `url(${watch("image")})` }}></div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Вознаграждение для бронзового инфлюэнсера"} />
+            <InputLink label={watch("rank_bronze")} />
           </div>
-          <div>
-            {!isEdit ? (
-              <InputLink label={watch("rating")} />
-            ) : (
-              <>
-                <Controller
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      data={value ? value : "Рейтинг"}
-                      options={[{ value: "Серебро", label: "Серебро" }]}
-                      onChange={onChange}
-                    />
-                  )}
-                  control={control}
-                  name={"rating"}
-                />
-                <FieldError error={errors.rating?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Вознаграждение для серебряного инфлюэнсера"} />
+            <InputLink label={watch("rank_silver")} />
           </div>
-          <div className="text-grey font-bold text-base leading-5">
-            Обновлен: 12.04.2024
+          <div className="flex flex-col gap-2">
+            <Label label={"Вознаграждение для золотого инфлюэнсера"} />
+            <InputLink label={watch("rank_gold")} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Вознаграждение для платинового инфлюэнсера"} />
+            <InputLink label={watch("rank_platinum")} />
           </div>
         </div>
         <div className="flex flex-col gap-6 w-full">
-          <div>
-            {!isEdit ? (
-              <InputLink label={watch("description")} />
-            ) : (
-              <>
-                <Input placeholder="Имя" {...register("description")} />
-                <FieldError error={errors.description?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Описание"} />
+            <InputLink label={watch("description")} />
           </div>
-          <div>
-            {!isEdit ? (
-              <InputLink
-                label={watch("branch") ? watch("branch") : "Филиалы"}
-              />
-            ) : (
-              <>
-                <Input {...register("branch")} />
-                <FieldError error={errors.branch?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Филиалы"} />
+            <InputLink label={watch("branch")} />
           </div>
-          <div>
-            {!isEdit ? (
-              <InputLink
-                label={watch("birthday") ? watch("birthday") : "Год рождения"}
-              />
-            ) : (
-              <>
-                <Controller
-                  name="birthday"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <InputCalendar
-                      placeholder="Год рождения"
-                      onChange={onChange}
-                      value={value}
-                    />
-                  )}
-                />
-                <FieldError error={errors.birthday?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Текст для рекламы"} />
+            <InputLink label={watch("description")} />
           </div>
-          <div>
-            {!isEdit ? (
-              <InputLink label={watch("gender") ? watch("gender") : "Пол"} />
-            ) : (
-              <>
-                <Controller
-                  name="gender"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      data={value ? value : "Пол"}
-                      options={[
-                        { value: "Мужчина", label: "Мужчина" },
-                        { value: "Женшина", label: "Женшина" },
-                      ]}
-                      onChange={onChange}
-                    />
-                  )}
-                />
-                <FieldError error={errors.gender?.message} />
-              </>
-            )}
-          </div>
-          <div>
-            {!isEdit ? (
-              <InputLink label={watch("city") ? watch("city") : "Город"} />
-            ) : (
-              <>
-                <Controller
-                  control={control}
-                  name="city"
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      data={value ? value : "Город"}
-                      onChange={onChange}
-                      options={[{ value: "Алматы", label: "Алматы" }]}
-                    />
-                  )}
-                />
-                <FieldError error={errors.city?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Ненормативная лексика"} />
+            <InputLink label={watch("is_bad_words_allowed") ? "Допустима" : "Не допустима"} />
           </div>
         </div>
         <div className="flex flex-col gap-6 w-full">
-          <div>
-            {!isEdit ? (
-              <InputLink
-                label={watch("category") ? watch("category") : "Категория"}
-              />
-            ) : (
-              <>
-                <Controller
-                  name="category"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      data={value ? value : "Категория"}
-                      onChange={onChange}
-                      options={[
-                        { value: "bar", label: "bar" },
-                        { value: "ba1", label: "ba1" },
-                        { value: "ba2", label: "ba2" },
-                        { value: "ba3", label: "ba3" },
-                      ]}
-                    />
-                  )}
-                />
-                <FieldError error={errors.restriction?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Создано"} />
+            <InputLink label={new Date(watch("created_at")).toLocaleDateString()} />
           </div>
-          <div>
-            {!isEdit ? (
-              <InputLink
-                label={
-                  watch("restriction")
-                    ? watch("restriction")
-                    : "Ограничения (Да / Нет)"
-                }
-              />
-            ) : (
-              <>
-                <Controller
-                  name="restriction"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      data={value ? value : "Ограничения (Да / Нет)"}
-                      onChange={onChange}
-                      options={[
-                        { value: "Да", label: "Да" },
-                        { value: "Нет", label: "Нет" },
-                      ]}
-                    />
-                  )}
-                />
-                <FieldError error={errors.restriction?.message} />
-              </>
-            )}
+          <div className="flex flex-col gap-2">
+            <Label label={"Бюджет"} />
+            <InputLink label={watch("budget")} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Одежда"} />
+            <InputLink label={watch("clothing_type")} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Инфлюенсеров "} />
+            <InputLink label={watch("influencer_count")} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Период"} />
+            <InputLink label={`${new Date(watch("start_date")).toLocaleDateString()} - ${new Date(watch("end_date")).toLocaleDateString()}`} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Тип"} />
+            <InputLink label={watch("publication_type")} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label label={"Формат"} />
+            <InputLink label={watch("ad_type")} />
           </div>
         </div>
+        
       </form>
       <div className="mt-[64px]">
         <h2 className="text-[24px] font-bold leading-7 mb-8">
           История объявлений
         </h2>
-        <Table
-          data={[
-            {
-              id: 0,
-              company: "Gippo",
-              members: "5/7",
-              budget: "25000 / 30000",
-              type: "Reels",
-              format: "Video",
-              status: "Активно",
-            },
-          ]}
-          filters={false}
-          labels={labels}
-          number
-          goTo="/advertisments"
-        />
+        <Table />
       </div>
       {isDelete &&
         createPortal(

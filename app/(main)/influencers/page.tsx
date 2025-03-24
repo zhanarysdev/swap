@@ -69,10 +69,22 @@ const sort = ["name", "city", "sex", "age", "status", "category"];
 
 const schema = y
   .object({
+    // Notification fields
     label: y.string().required("Oбязательное поле"),
     text: y.string().max(300).required("Oбязательное поле"),
     link: y.string().required("Oбязательное поле"), 
-    photo: y.mixed().required("Oбязательное поле"),
+    photo: y.mixed<File>()
+      .test('is-file', 'Oбязательное поле', (value) => value instanceof File)
+      .required("Oбязательное поле"),
+    // Influencer fields
+    age: y.string().optional(),
+    category_ids: y.array().of(y.string()).optional(),
+    city_id: y.string().optional(),
+    fullname: y.string().optional(),
+    gender: y.string().optional(),
+    instagram: y.string().optional(),
+    number: y.string().optional(),
+    restricted_ad: y.boolean().optional(),
   })
   .required();
 
@@ -110,7 +122,35 @@ export default function ModerationPage() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result.items.map(el => ({...el, category: el.categories, rank: el.rank.name, advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`})),
+        data: 
+        data.result.items ? 
+        data.result.items.map(el => ({...el, 
+          category: el.categories, 
+          rank: el.rank.name, 
+          advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
+          age: el.birthday ? (() => {
+            try {
+              let date;
+              if (el.birthday.includes('.')) {
+                // Handle "DD.MM.YYYY" format
+                const [day, month, year] = el.birthday.split('.');
+                date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              } else {
+                // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
+                date = new Date(el.birthday.split(' ')[0]);
+              }
+              
+              if (isNaN(date.getTime())) {
+                return '';
+              }
+              
+              const age = new Date().getFullYear() - date.getFullYear();
+              return age > 0 ? age : '';
+            } catch (error) {
+              return '';
+            }
+          })() : ''
+        })) : [],
         labels: labels,
         goTo: "/influencers",
         sort: sort,
@@ -137,31 +177,81 @@ export default function ModerationPage() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
+    defaultValues: {
+      label: '',
+      text: '',
+      link: '',
+      age: '',
+      category_ids: [],
+      city_id: '',
+      fullname: '',
+      gender: '',
+      instagram: '',
+      number: '',
+      restricted_ad: false,
+    }
   });
 
 
   const save = async (data: FormData) => {
-    const formData = new FormData();
+    try {
+      // First, send the notification
+      const notificationFormData = new FormData();
+      notificationFormData.append("user_ids", context.checked.join(','));
+      notificationFormData.append("message", data.text || '');
+      notificationFormData.append("from", data.label || '');
+      notificationFormData.append("navigate", data.link || '');
+      notificationFormData.append("link", data.link || '');
+      
+      if (data.photo instanceof File) {
+        notificationFormData.append("image", data.photo);
+      }
 
-    // Add required fields according to API format
-    formData.append("user_ids", context.checked.join(','));
-    formData.append("message", data.text || '');
-    formData.append("from", data.label || '');
-    formData.append("navigate", data.link || ''); // Using link as navigate parameter
-    formData.append("link", data.link || '');
-    
-    // Handle image file
-    if (data.photo instanceof File) {
-      formData.append("image", data.photo);
-    }
+      const notificationRes = await postFile({
+        url: "notification/send",
+        data: notificationFormData,
+      });
 
-    const res = await postFile({
-      url: "notification/send",
-      data: formData,
-    });
-    
-    if (res.success) {
-      setOpen(false);
+      // Then update each selected influencer
+      const updatePromises = context.checked.map(async (id) => {
+        const influencerFormData = new FormData();
+        
+        // Add all fields to FormData
+        influencerFormData.append("birthday", data.age || "");
+        influencerFormData.append("category_ids", JSON.stringify(data.category_ids || []));
+        influencerFormData.append("city_id", data.city_id || "");
+        influencerFormData.append("fullname", data.fullname || "");
+        influencerFormData.append("gender", data.gender || "");
+        influencerFormData.append("instagram", data.instagram || "");
+        influencerFormData.append("number", data.number || "");
+        influencerFormData.append("restricted_ad", String(data.restricted_ad || false));
+
+        const res = await fetch(`https://swapp.kz/api/v1/influencer/${id}`, {
+          method: 'PUT',
+          headers: {
+            'accept': 'application/json',
+            'SuperToken': 'supertoken',
+            // Remove Content-Type header to let browser set it with boundary
+          },
+          body: influencerFormData,
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to update influencer ${id}`);
+        }
+
+        return res.json();
+      });
+
+      await Promise.all(updatePromises);
+      
+      if (notificationRes.success) {
+        setOpen(false);
+        mutate(); // Refresh the data
+      }
+    } catch (error) {
+      console.error('Error updating influencers:', error);
+      // You might want to show an error message to the user here
     }
   };
 
@@ -207,7 +297,7 @@ export default function ModerationPage() {
                   render={({ field: { value, onChange } }) => (
                     <InputFile
                       placeholder="Перенесите сюда файл"
-                      value={value instanceof File ? value.name : ""}
+                      value={value || null}
                       onChange={onChange}
                     />
                   )}
