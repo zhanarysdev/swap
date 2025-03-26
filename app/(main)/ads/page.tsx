@@ -3,13 +3,17 @@ import { Button, ButtonBG } from "@/components/button/button";
 import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { Icon } from "@/components/icons";
+import { Input } from "@/components/input/input";
+import { Label } from "@/components/input/label";
+import { ModalSave } from "@/components/modal/modal-save";
 import Table from "@/components/temp/table";
 import {
   default_context,
   TableContext,
 } from "@/components/temp/table-provider";
-import { fetcher } from "@/fetcher";
-import { useContext, useEffect } from "react";
+import { fetcher, post } from "@/fetcher";
+import { useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import useSWR from "swr";
 
 const labels = [
@@ -58,6 +62,7 @@ const labels = [
 export default function Ads() {
   const { context, setContext } = useContext(TableContext);
   const debouncedSearch = useDebounce(context.search, 500);
+  const [open, setOpen] = useState(false);
 
   const { data, isLoading } = useSWR(
     {
@@ -65,6 +70,7 @@ export default function Ads() {
     },
     fetcher
   );
+  console.log(context)
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
@@ -87,6 +93,13 @@ export default function Ads() {
     };
   }, []);
 
+  const {register, handleSubmit} = useForm()
+
+  const onSave = async (data: any) => {
+    const res = await post({url: "selection/create", data: {name: data.name}})
+    console.log(res);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-start">
@@ -96,9 +109,18 @@ export default function Ads() {
           preIcon={<Icon name={"Plus"} />}
           bg={ButtonBG.grey}
           label={"Создать подборку"}
+          onClick={() => setOpen(true)}
         />
       </div>
       <Table />
+      {
+        open && <ModalSave label={"Создать подборку"} onSave={handleSubmit(onSave)} close={() => setOpen(false)}>
+          <div className="flex flex-col gap-2">
+            <Label label="Название"/>
+            <Input placeholder="Название" {...register("name")} />
+          </div>
+        </ModalSave>
+      }
     </div>
   );
 }

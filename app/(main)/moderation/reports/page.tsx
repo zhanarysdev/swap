@@ -1,7 +1,7 @@
 "use client";
 import { Header } from "@/components/header/header";
-import { Table } from "@/components/table/table";
-import { TableContext } from "@/components/table/table-context";
+import { TableContext } from "@/components/temp/table-provider";
+import Table from "@/components/temp/table";
 import { fetcher } from "@/fetcher";
 import { useContext, useEffect, useState } from "react";
 import useSWR from "swr";
@@ -38,27 +38,27 @@ const labels = [
 ];
 
 export default function ModerationPublicationsPage() {
-  const { tableData, setTableData } = useContext(TableContext);
-  const [filteredData, setFilteredData] = useState([]);
+  const {context, setContext} = useContext(TableContext)
 
   const { data, isLoading, mutate } = useSWR(
     { url: `moderation/visits?status=pending_review&page=1&limit=10` },
     fetcher
   );
-
-  useEffect(() => {
-    setTableData({ isLoading: isLoading });
-  }, [isLoading]);
-
+  console.log(data)
   useEffect(() => {
     if (data?.result) {
-      setFilteredData(data.result.visits);
+      setContext({
+        ...context,
+        data: data?.result.visits.map((el: any) => ({...el, deadline: `${new Date(el.start_date).toLocaleDateString()} - ${new Date(el.end_date).toLocaleDateString()}`, id: el.task_id})),
+        labels: labels,
+        goTo: "/moderation/publications",
+      });
     }
   }, [data]);
   return (
     <div>
       <Header title={"Модерация"} subTitle={"Информация"} />
-      <Table data={filteredData} labels={labels} />
+      <Table />
     </div>
   );
 }

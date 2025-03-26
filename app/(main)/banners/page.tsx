@@ -8,6 +8,7 @@ import { InputFile } from "@/components/input/input-file";
 import { Label } from "@/components/input/label";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
+import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
 import { TableContext, default_context } from "@/components/temp/table-provider";
@@ -15,7 +16,7 @@ import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import * as yup from "yup";
 
@@ -53,6 +54,7 @@ export default function BannersPage() {
     },
     fetcher
   );
+  const cities = useSWR({url: "city/list"}, fetcher)
 
   const {
     register,
@@ -174,11 +176,24 @@ export default function BannersPage() {
       <Table />
       {isOpen &&
         createPortal(
-          <ModalSave label={"Добавить баннер"} onSave={handleSubmit(save)} close={() => setOpen(false)}>
+          <ModalSave label={"Добавить баннер"} onSave={handleSubmit(save)} close={() => {
+            setOpen(false)
+            reset()
+          }}>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label label="Город" />
-                <Input placeholder="Город" {...register("city_id")} />
+                <Controller
+                  control={control}
+                  name="city_id"
+                  render={({ field }) => (
+                    <Select
+                      data={cities.data?.result}
+                      options={cities.data?.result.map((el) => ({value: el.id, label: el.name.ru}))}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />  
               </div>
 
               <div className="flex flex-col gap-2">

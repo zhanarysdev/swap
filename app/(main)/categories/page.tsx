@@ -5,6 +5,7 @@ import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
+import { Select } from "@/components/select/select";
 import Table from "@/components/temp/table";
 import {
   default_context,
@@ -14,7 +15,7 @@ import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import * as yup from "yup";
 
@@ -24,15 +25,15 @@ const labels = [
     title: "ID",
   },
   {
-    key: "name",
+    key: "title",
     title: "Название",
   },
   {
-    key: "city",
+    key: "city_name",
     title: "Город",
   },
   {
-    key: "count",
+    key: "task_count",
     title: "Количество объявлений",
   },
 ];
@@ -40,7 +41,7 @@ const labels = [
 const schema = yup
   .object({
     name: yup.string().required("Oбязательное поле"),
-    city: yup.string().required("Oбязательное поле"),
+    city_id: yup.string().required("Oбязательное поле"),
   })
   .required();
 type FormSchemaType = yup.InferType<typeof schema>;
@@ -55,16 +56,18 @@ export default function CategoriesPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `categories?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      url: `selection/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
     },
     fetcher
   );
+  const cities = useSWR({url: "city/list"}, fetcher)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    control,
     setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
@@ -78,7 +81,7 @@ export default function CategoriesPage() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result.map((el) => ({ ...el, name: el.name.ru })),
+        data: data?.result.map((el) => ({ ...el })),
         labels: labels,
         control: {
           action: () => setOpen(true),
@@ -96,15 +99,16 @@ export default function CategoriesPage() {
       }));
     }
 
-    return () => {
-      setContext(default_context);
-    };
-  }, []);
+  }, [data]);
+
+  useEffect(() => {
+    setContext(default_context)
+  }, [])
 
   async function save(data: FormSchemaType) {
     const res = await post({
       url: `selection/create`,
-      data: { name: data.name },
+      data: { title: data.name, city_id: data.city_id },
     });
     if (res.statusCode === 200) {
       reset();
@@ -144,7 +148,7 @@ export default function CategoriesPage() {
             onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
             close={() => {
-              reset({ name: "", city: "" });
+              reset({ name: "", city_id: "" });
               setOpen(false);
               setEdit(null);
             }}
@@ -160,21 +164,21 @@ export default function CategoriesPage() {
               </div>
 
               <div>
-                {/* <Controller
+                <Controller
                   control={control}
-                  render={({ field: { onChange, value } }) => (
+                  name="city_id"
+                  render={({ field }) => (
                     <Select
-                      data={value ? value : "Город"}
-                      options={cities.data.map((el: any) => ({
-                        label: el.name,
-                        value: el.name,
+                      data={cities.data?.result}
+                      options={cities.data?.result.map((el: any) => ({
+                        label: el.name.ru,
+                        value: el.id,
                       }))}
-                      onChange={onChange}
+                      onChange={field.onChange}
                     />
                   )}
-                  name={"city"}
-                /> */}
-                <FieldError error={errors.city?.message} />
+                />
+                <FieldError error={errors.city_id?.message} />
               </div>
             </div>
           </ModalSave>,

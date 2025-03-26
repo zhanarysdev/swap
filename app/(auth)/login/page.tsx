@@ -40,6 +40,7 @@ export default function LoginPage() {
     }).then((res) => res.json());
     if (res?.statusCode === 200) {
       localStorage?.setItem("token", res.result);
+document.cookie = `token=${res.result}; path=/; max-age=2592000; SameSite=Strict`;
       push("/busines");
     } else {
       setError("root", { message: "Неправильный логин или пароль" });
