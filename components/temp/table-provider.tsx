@@ -1,6 +1,16 @@
 "use client";
 
 import { createContext, useState } from "react";
+
+type SortValue = {
+  key: string;
+  direction: 'asc' | 'desc';
+} | null;
+
+type FilterValue = {
+  [key: string]: string | undefined;
+};
+
 export const default_context = {
   search: "",
   data: [],
@@ -8,7 +18,8 @@ export const default_context = {
   isLoading: false,
   filters: [],
   sort: [],
-  sortValue: "",
+  sortValue: null as SortValue,
+  sortByTwoDirection: false,
   pure: false,
   number: false,
   onDelete: null,
@@ -16,7 +27,7 @@ export const default_context = {
   onSearch: null,
   goTo: null,
   control: null,
-  filterValue: "",
+  filterValue: {} as FilterValue,
   checked: []
 };
 
@@ -28,7 +39,8 @@ export const TableContext = createContext({
     isLoading: false,
     filters: [],
     sort: [],
-    sortValue: "",
+    sortValue: null as SortValue,
+    sortByTwoDirection: false,
     pure: false,
     number: false,
     onDelete: null,
@@ -36,7 +48,7 @@ export const TableContext = createContext({
     onSearch: null,
     goTo: null,
     control: null,
-    filterValue: "",
+    filterValue: {} as FilterValue,
     checked: []
   },
   setContext: (data) => data,
@@ -50,15 +62,16 @@ export default function TableProvider({ children }) {
     isLoading: false,
     filters: [],
     sort: [],
+    sortByTwoDirection: false,
     pure: false,
     number: false,
     onDelete: null,
     onEdit: null,
     goTo: null,
-    sortValue: "",
+    sortValue: null as SortValue,
     onSearch: null,
     control: null,
-    filterValue: "",
+    filterValue: {} as FilterValue,
     checked: []
   });
   return (

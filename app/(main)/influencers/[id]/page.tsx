@@ -82,7 +82,11 @@ export default function InfluencersId() {
     fetcher
   );
 
-  const cities = useSWR({ url: `city/count` }, fetcher);
+  const cities = useSWR({ url: `city/count`, data: {
+  "search": "",
+  "sort_by": "name",
+  "sort_dir": "asc"
+}  }, post);
   const categories = useSWR({ url: "categories" }, fetcher);
 
   const [isOpen, setOpen] = useState(false);
@@ -133,8 +137,9 @@ export default function InfluencersId() {
         restricted_ad: data.restriction === "Да" ? true : false,
       },
     }); // Specify the collection and document ID
-    if (res.statusCode === 200) {
+    if (res.result ) {
       mutate();
+      setEdit(false)
     }
   }
   const link = watch("instagram")?.split("@");
@@ -192,7 +197,7 @@ export default function InfluencersId() {
       </div>
       <form className="flex gap-[42px]">
         <div className="flex flex-col gap-6 w-full">
-          <img className={`bg-lightGrey w-full h-[288px] rounded-2xl flex ` } src={data?.result?.image}/>
+          <img className={`bg-lightGrey w-full h-[288px] rounded-2xl flex object-cover` } src={data?.result?.image}/>
           <div>
             {!isEdit ? (
               <InputLink
@@ -283,7 +288,7 @@ export default function InfluencersId() {
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={watch("gender") === "man" ? "Мужчина" : watch("gender") === "woman" ? "Женшина" : "Пол"} />
+              <InputLink label={watch("gender") === "male" ? "Мужчина" : watch("gender") === "female" ? "Женшина" : "Пол"} />
             ) : (
               <>
                 <Controller
@@ -293,8 +298,8 @@ export default function InfluencersId() {
                     <Select
                       data={value ? value : "Пол"}
                       options={[
-                        { value: "man", label: "Мужчина" },
-                        { value: "woman", label: "Женшина" },
+                        { value: "male", label: "Мужчина" },
+                        { value: "female", label: "Женшина" },
                       ]}
                       onChange={onChange}
                     />
@@ -309,7 +314,7 @@ export default function InfluencersId() {
               <InputLink
                 label={
                   cities.data?.result.find((el) => el.id === watch("city"))
-                    ?.name.ru
+                    ?.name
                 }
               />
             ) : (
@@ -322,7 +327,7 @@ export default function InfluencersId() {
                         data={value ? value : "Город"}
                         options={cities.data?.result.map((el: any) => {
                           return {
-                            label: el.name.ru,
+                            label: el.name,
                             value: el.id,
                           };
                         })}
@@ -345,7 +350,6 @@ export default function InfluencersId() {
                   ?.map(
                     (val) =>
                       categories.data?.result.find((el) => el.id === val)?.name
-                        .ru
                   )
                   .filter(Boolean)
                   .join(", ")}
@@ -360,7 +364,7 @@ export default function InfluencersId() {
                       <MultiSelect
                         data={value ? value : ["Категория бизнеса"]}
                         options={categories.data?.result.map((el) => ({
-                          label: el.name.ru,
+                          label: el.name,
                           value: el.id,
                         }))}
                         onChange={onChange}

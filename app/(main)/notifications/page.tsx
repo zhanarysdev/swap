@@ -1,10 +1,11 @@
 "use client";
+import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { ModalDelete } from "@/components/modal/modal-delete";
-import { Spinner } from "@/components/spinner/spinner";
 import { Table } from "@/components/table/table";
+import { default_context, TableContext } from "@/components/temp/table-provider";
 import { fetcher } from "@/fetcher";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 
@@ -14,11 +15,11 @@ const labels = [
     title: "ID",
   },
   {
-    key: "label",
+    key: "title",
     title: "Заголовок",
   },
   {
-    key: "text",
+    key: "message",
     title: "Текст",
   },
   {
@@ -30,29 +31,63 @@ const labels = [
     title: "Ссылка",
   },
   {
-    key: "time",
+    key: "created_at",
     title: "Время",
   },
   {
-    key: "count",
+    key: "recipient_count",
     title: "Количество",
-  },
-];
-const data = [
-  {
-    id: "oijwoef",
-    label: "Заголовок",
-    text: "Новая акция",
-    filter: ["Алматы", "Мужчины"],
-    link: "https://swapp.kz",
-    time: "12.00 12.04.2024",
-    count: "53",
   },
 ];
 
 export default function NotificationsPage() {
   const [isDelete, setDelete] = useState<null | string>(null);
 
+  const { context, setContext } = useContext(TableContext);
+  const debouncedSearch = useDebounce(context.search, 500);
+
+  const { data, isLoading, mutate } = useSWR(
+    {
+      url: `notification/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue }`,
+    },
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 2000
+    }
+  );
+  console.log(data)
+
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (data?.result) {
+      setContext((prev) => ({
+        ...prev,
+        data: data.result.items,
+        labels: labels,
+        goTo: "/busines",
+        sort: [
+          "name",
+          "city",
+          "balance",
+          "category",
+          "lastTaskDate",
+          "taskCount",
+        ],
+        filters: ["city", "category"],
+      }));
+    }
+  }, [data, setContext]);
+
+  useEffect(() => {
+    return () => {
+      setContext(default_context);
+    };
+  }, []);
   const remove = () => {
     console.log("asld");
   };
@@ -61,7 +96,7 @@ export default function NotificationsPage() {
     <div>
       <Header subTitle="Информация" title="Уведомления" />
       <Table
-        data={data}
+        data={context.data}
         labels={labels}
         goTo="/notifications"
         onDelete={(id) => setDelete(id)}

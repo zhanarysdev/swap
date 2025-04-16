@@ -42,7 +42,7 @@ const labels = [
   {
     key: "gender",
     title: "Пол",
-    gender: true
+    gender: true,
   },
   {
     key: "age",
@@ -72,9 +72,10 @@ const schema = y
     // Notification fields
     label: y.string().required("Oбязательное поле"),
     text: y.string().max(300).required("Oбязательное поле"),
-    link: y.string().required("Oбязательное поле"), 
-    photo: y.mixed<File>()
-      .test('is-file', 'Oбязательное поле', (value) => value instanceof File)
+    link: y.string().required("Oбязательное поле"),
+    photo: y
+      .mixed<File>()
+      .test("is-file", "Oбязательное поле", (value) => value instanceof File)
       .required("Oбязательное поле"),
     // Influencer fields
     age: y.string().optional(),
@@ -103,58 +104,71 @@ export default function ModerationPage() {
         page: 1,
         search: debouncedSearch,
         sortBy: context.sortValue,
+        category_id: context.filterValue.category,
+        city_id: context.filterValue.city,
+        gender: context.filterValue.gender,
+        max_age: context.filterValue.max_age ? context.filterValue.max_age : 100,
+        min_age: context.filterValue.min_age ? context.filterValue.min_age : 0,
+        rank_id: context.filterValue.rank,
       },
     },
-    post
+    post,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 2000
+    }
   );
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
 
-  useEffect(() => {
-    if (debouncedSearch) {
-      mutate();
-    }
-  }, [debouncedSearch]);
 
   useEffect(() => {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: 
-        data.result.items ? 
-        data.result.items.map(el => ({...el, 
-          category: el.categories, 
-          rank: el.rank.name, 
-          advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
-          age: el.birthday ? (() => {
-            try {
-              let date;
-              if (el.birthday.includes('.')) {
-                // Handle "DD.MM.YYYY" format
-                const [day, month, year] = el.birthday.split('.');
-                date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-              } else {
-                // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
-                date = new Date(el.birthday.split(' ')[0]);
-              }
-              
-              if (isNaN(date.getTime())) {
-                return '';
-              }
-              
-              const age = new Date().getFullYear() - date.getFullYear();
-              return age > 0 ? age : '';
-            } catch (error) {
-              return '';
-            }
-          })() : ''
-        })) : [],
+        data: data.result.items
+          ? data.result.items.map((el) => ({
+            ...el,
+            category: el.categories,
+            rank: el.rank,
+            advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
+            age: el.birthday
+              ? (() => {
+                try {
+                  let date;
+                  if (el.birthday.includes(".")) {
+                    // Handle "DD.MM.YYYY" format
+                    const [day, month, year] = el.birthday.split(".");
+                    date = new Date(
+                      parseInt(year),
+                      parseInt(month) - 1,
+                      parseInt(day)
+                    );
+                  } else {
+                    // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
+                    date = new Date(el.birthday.split(" ")[0]);
+                  }
+
+                  if (isNaN(date.getTime())) {
+                    return "";
+                  }
+
+                  const age = new Date().getFullYear() - date.getFullYear();
+                  return age > 0 ? age : "";
+                } catch (error) {
+                  return "";
+                }
+              })()
+              : "",
+          }))
+          : [],
         labels: labels,
         goTo: "/influencers",
         sort: sort,
-        filters: ["city", "category", "taskCount"],
+        filters: ["city", "category", "gender", "min_age", "max_age", "rank"],
         control: {
           label: "Отправить уведомление",
           action: () => setOpen(true),
@@ -178,80 +192,41 @@ export default function ModerationPage() {
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
-      label: '',
-      text: '',
-      link: '',
-      age: '',
+      label: "",
+      text: "",
+      link: "",
+      age: "",
       category_ids: [],
-      city_id: '',
-      fullname: '',
-      gender: '',
-      instagram: '',
-      number: '',
+      city_id: "",
+      fullname: "",
+      gender: "",
+      instagram: "",
+      number: "",
       restricted_ad: false,
-    }
+    },
   });
-
 
   const save = async (data: FormData) => {
     try {
       // First, send the notification
       const notificationFormData = new FormData();
-      notificationFormData.append("user_ids", context.checked.join(','));
-      notificationFormData.append("message", data.text || '');
-      notificationFormData.append("from", data.label || '');
-      notificationFormData.append("navigate", data.link || '');
-      notificationFormData.append("link", data.link || '');
-      
-      if (data.photo instanceof File) {
+      notificationFormData.append("user_ids", context.checked.join(","));
+      notificationFormData.append("message", data.text || "");
+      notificationFormData.append("from", data.label || "");
+      notificationFormData.append("navigate", data.link || "");
+      notificationFormData.append("link", data.link || "");
         notificationFormData.append("image", data.photo);
-      }
 
-      const notificationRes = await postFile({
+
+      const res = await postFile({
         url: "notification/send",
         data: notificationFormData,
       });
-
-      // Then update each selected influencer
-      const updatePromises = context.checked.map(async (id) => {
-        const influencerFormData = new FormData();
-        
-        // Add all fields to FormData
-        influencerFormData.append("birthday", data.age || "");
-        influencerFormData.append("category_ids", JSON.stringify(data.category_ids || []));
-        influencerFormData.append("city_id", data.city_id || "");
-        influencerFormData.append("fullname", data.fullname || "");
-        influencerFormData.append("gender", data.gender || "");
-        influencerFormData.append("instagram", data.instagram || "");
-        influencerFormData.append("number", data.number || "");
-        influencerFormData.append("restricted_ad", String(data.restricted_ad || false));
-
-        const res = await fetch(`https://swapp.kz/api/v1/influencer/${id}`, {
-          method: 'PUT',
-          headers: {
-            'accept': 'application/json',
-            'SuperToken': 'supertoken',
-            // Remove Content-Type header to let browser set it with boundary
-          },
-          body: influencerFormData,
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to update influencer ${id}`);
-        }
-
-        return res.json();
-      });
-
-      await Promise.all(updatePromises);
-      
-      if (notificationRes.success) {
-        setOpen(false);
-        mutate(); // Refresh the data
+      if(res.result) {
+        setOpen(false)
       }
     } catch (error) {
-      console.error('Error updating influencers:', error);
-      // You might want to show an error message to the user here
+      console.error("Error updating influencers:", error);
     }
   };
 

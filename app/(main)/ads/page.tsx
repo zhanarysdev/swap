@@ -44,7 +44,7 @@ const labels = [
   },
   {
     key: "ad_type",
-    title: "Reels",
+    title: "Формат",
     rounded: true,
   },
   {
@@ -70,7 +70,6 @@ export default function Ads() {
     },
     fetcher
   );
-  console.log(context)
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
@@ -83,6 +82,8 @@ export default function Ads() {
         data: data.result.tasks.map((el) => ({...el, budget: `${el.spent_budget} / ${el.total_budget}`, deadline: `${ new Date(el.start_date).toLocaleDateString()} - ${new Date(el.end_date).toLocaleDateString()}`})),
         labels: labels,
         goTo: "/ads",
+        sort: ["status", "ad_format", "publication_type"],
+        filters:  ["business_name", "deadline", "ad_type", "publication_type", "status"]
       }));
     }
   }, [data]);
@@ -96,8 +97,10 @@ export default function Ads() {
   const {register, handleSubmit} = useForm()
 
   const onSave = async (data: any) => {
-    const res = await post({url: "selection/create", data: {name: data.name}})
-    console.log(res);
+    const res = await post({url: "selection/create", data: {title: data.name, task_ids: context.checked}})
+    if(res.result ==='success') {
+      setOpen(false)
+    }
   };
 
   return (

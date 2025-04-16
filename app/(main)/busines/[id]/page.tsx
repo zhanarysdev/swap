@@ -6,6 +6,7 @@ import { FieldError } from "@/components/input/field-error";
 import { Input } from "@/components/input/input";
 import { InputButton } from "@/components/input/input-button";
 import { InputLink } from "@/components/input/input-link";
+import { InputPhone } from "@/components/input/input-phone";
 import { InputTrash } from "@/components/input/input-trash";
 import { Label } from "@/components/input/label";
 import { Modal } from "@/components/modal/modal";
@@ -20,6 +21,7 @@ import {
 } from "@/components/temp/table-provider";
 import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { format } from "@react-input/mask";
 import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -94,8 +96,28 @@ export default function BusinesId() {
     { url: `superadmin/v1/business/${id}`, custom: true },
     fetcher
   );
-  const cities = useSWR({ url: `city/count` }, fetcher);
-  const categories = useSWR({ url: "categories" }, fetcher);
+  const cities = useSWR(
+    {
+      url: `city/count`,
+      data: {
+        search: "",
+        sort_by: "name",
+        sort_dir: "asc",
+      },
+    },
+    post
+  );
+  const categories = useSWR(
+    {
+      url: "business/category/list",
+      data: {
+        search: "",
+        sort_by: "",
+        sort_dir: "asc",
+      },
+    },
+    post
+  );
 
   const [isOpen, setOpen] = useState(false);
 
@@ -148,7 +170,7 @@ export default function BusinesId() {
       data: {
         address: data.address,
         bin: data.bin,
-        branches: data.filials,
+        branches: data.filials.map((el) => ({ address: el })),
         categories: data.category,
         cityId: data.city,
         displayNumber: data.contact,
@@ -159,8 +181,9 @@ export default function BusinesId() {
         phoneNumber: data.phoneNumber,
       },
     }); // Specify the collection and document ID
-    if (res.statusCode === 200) {
+    if (res.result) {
       mutate();
+      setEdit(false);
     }
   }
 
@@ -243,10 +266,17 @@ export default function BusinesId() {
             ) : (
               <div className="flex flex-col gap-2 w-full">
                 <Label label={"Номер телефона"} />
-                <Input
-                  placeholder="Номер телефона"
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => {
+                    const cleaned = String(value).replace(/\D/g, "");
+                    const formatted = format(cleaned, {
+                      mask: "+7 (___) ___-___-__",
+                      replacement: { _: /\d/ },
+                    });
+                    return <InputPhone value={formatted} onChange={onChange} />;
+                  }}
                   name="phoneNumber"
-                  {...register("phoneNumber")}
                 />
                 <FieldError error={errors.phoneNumber?.message} />
               </div>
@@ -268,10 +298,17 @@ export default function BusinesId() {
             ) : (
               <div className="flex flex-col gap-2 w-full">
                 <Label label={"Номер телефона менеджера в приложении"} />
-                <Input
-                  placeholder="Номер телефона менеджера в приложении"
+                <Controller
+                  control={control}
+                  render={({ field: { onChange, value } }) => {
+                    const cleaned = String(value).replace(/\D/g, "");
+                    const formatted = format(cleaned, {
+                      mask: "+7 (___) ___-___-__",
+                      replacement: { _: /\d/ },
+                    });
+                    return <InputPhone value={formatted} onChange={onChange} />;
+                  }}
                   name="contact"
-                  {...register("contact")}
                 />
                 <FieldError error={errors.contact?.message} />
               </div>
@@ -285,7 +322,6 @@ export default function BusinesId() {
                   ?.map(
                     (val) =>
                       categories.data?.result.find((el) => el.id === val)?.name
-                        .ru
                   )
                   .filter(Boolean)
                   .join(", ")}
@@ -300,7 +336,7 @@ export default function BusinesId() {
                       <MultiSelect
                         data={value ? value : ["Категория бизнеса"]}
                         options={categories.data?.result.map((el) => ({
-                          label: el.name.ru,
+                          label: el.name,
                           value: el.id,
                         }))}
                         onChange={onChange}
@@ -316,7 +352,7 @@ export default function BusinesId() {
               <InputLink
                 label={
                   cities.data?.result.find((el) => el.id === watch("city"))
-                    ?.name.ru
+                    ?.name
                 }
               />
             ) : (
@@ -330,7 +366,7 @@ export default function BusinesId() {
                         data={value ? value : "Город"}
                         options={cities.data?.result.map((el: any) => {
                           return {
-                            label: el.name.ru,
+                            label: el.name,
                             value: el.id,
                           };
                         })}

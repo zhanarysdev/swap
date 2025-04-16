@@ -86,7 +86,10 @@ export default function ContentPage() {
           action: () => setOpen(true),
           label: "Добавить",
         },
-        onDelete: (id) => setDelete(id),
+        onDelete: (id) => {
+          console.log(id);
+          setDelete(id);
+        },
         onEdit: (id) => {
           reset(data.result.find((el) => el.id === id) as any);
           setOpen(true);
@@ -127,7 +130,8 @@ export default function ContentPage() {
   }
 
   async function onRemove() {
-    const res = await remove(`content/${isDelete}` as any);
+    console.log(isDelete);
+    const res = await remove({ url: `content/${isDelete}` } as any);
     setDelete(null);
     mutate();
   }

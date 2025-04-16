@@ -23,6 +23,7 @@ export function Sort({
       </div>
       <Radio
         options={data}
+        styles={undefined}
         value={sortValue}
         onChange={(e) => {
           setContext((prev) => ({ ...prev, sortValue: e }));

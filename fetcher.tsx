@@ -66,7 +66,9 @@ export const fetcher = async ({
   custom: boolean;
 }) => {
   const res: any = fetch(
-    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    custom
+      ? `https://swapp-admin-stg-414022925388.us-central1.run.app/api/${url}`
+      : `https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/${url}`,
     {
       method: "GET",
       headers: {
@@ -85,7 +87,9 @@ export const fetcher = async ({
 };
 export const post = async ({ url, data, custom = false }) => {
   const res = fetch(
-    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    custom
+      ? `https://swapp-admin-stg-414022925388.us-central1.run.app/api/${url}`
+      : `https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/${url}`,
     {
       method: "POST",
       headers: {
@@ -105,15 +109,16 @@ export const post = async ({ url, data, custom = false }) => {
 };
 export const postFile = async ({ url, data, custom = false }) => {
   const res = fetch(
-    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    custom
+      ? `https://swapp-admin-stg-414022925388.us-central1.run.app/api/${url}`
+      : `https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/${url}`,
     {
       method: "POST",
       headers: {
         Accept: "application/json",
-        "Content-Type": "multipart/form-data",
         SuperToken: token,
       },
-      body: JSON.stringify(data),
+      body: (data),
     }
   ).then((response) => {
     if (!response.ok) {
@@ -126,7 +131,9 @@ export const postFile = async ({ url, data, custom = false }) => {
 
 export const edit = async ({ url, data, custom = false }) => {
   const res = fetch(
-    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    custom
+      ? `https://swapp-admin-stg-414022925388.us-central1.run.app/api/${url}`
+      : `https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/${url}`,
     {
       method: "PUT",
       headers: {
@@ -153,7 +160,9 @@ export const remove = async ({
   custom?: boolean;
 }) => {
   const res = fetch(
-    custom ? `https://swapp.kz/api/${url}` : `https://swapp.kz/api/v1/${url}`,
+    custom
+      ? `https://swapp-admin-stg-414022925388.us-central1.run.app/api/${url}`
+      : `https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/${url}`,
     {
       method: "DELETE",
       headers: {

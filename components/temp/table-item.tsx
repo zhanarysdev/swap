@@ -27,7 +27,7 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
 
 
   if(item.gender) {
-    if(el[item.key] === "man") {
+    if(el[item.key] === "man" || el[item.key] === "male") {
       return "Мужской"
     }
     if(el[item.key] === "female") {
@@ -36,14 +36,17 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
   }
 
   if (item.rank) {
-    if (el[item.key] === "gold") {
+    if (el[item.key].name === "gold") {
       return "Золото"
     }
-    if (el[item.key] === "silver") {
+    if (el[item.key].name === "silver") {
       return "Серебро"
     }
-    if (el[item.key] === "bronze") {
+    if (el[item.key].name === "bronze") {
       return "Бронза"
+    }
+    if(el[item.key].name === "platinum") {
+      return "Платина"
     }
   }
   if (item.restriction) {
@@ -54,34 +57,44 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
     }
 
   }
+  if(item.image) {
+    return <img className="h-[80px]" src={el[item.key]} />
+  }
 
   if (item.status) {
     if(el[item.key] === 'active') {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>
-        <span>Активный</span>
-      </div>
-    );
-  }
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>
+          <span>Активный</span>
+        </div>
+      );
+    }
     if(el[item.key] === 'not_active') {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>
-        <span>Не активный</span>
-      </div>
-    );
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>
+          <span>Не активный</span>
+        </div>
+      );
+    }
+    if(el[item.key] === 'report') {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-[8px] h-[8px] rounded-full bg-[#FF1B1B]"></div>
+          <span>Отчет</span>
+        </div>
+      );
+    }
+    if(el[item.key] === 'pending_review') {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-[8px] h-[8px] rounded-full bg-[#FFA500]"></div>
+          <span>В ожидании</span>
+        </div>
+      );
+    }
   }
-  if(el[item.key] === 'report') {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="w-[8px] h-[8px] rounded-full bg-[#FF1B1B]"></div>
-        <span>Отчет</span>
-      </div>
-    );
-
-  }
-}
 
   if (item.category) {
     return (

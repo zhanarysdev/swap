@@ -15,7 +15,12 @@ export function Sort({
         <div className="font-bold leading-5 text-base">Сортировка</div>
         <Icon name="Close" onClick={close} className="cursor-pointer" />
       </div>
-      <Radio options={data} onChange={() => null} value={""} />
+      <Radio
+        styles={undefined}
+        options={data}
+        onChange={() => null}
+        value={""}
+      />
     </div>
   );
 }

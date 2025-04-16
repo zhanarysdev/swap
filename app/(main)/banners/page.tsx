@@ -11,8 +11,11 @@ import { ModalSave } from "@/components/modal/modal-save";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
-import { TableContext, default_context } from "@/components/temp/table-provider";
-import { edit, fetcher, post, remove } from "@/fetcher";
+import {
+  TableContext,
+  default_context,
+} from "@/components/temp/table-provider";
+import { edit, fetcher, post, postFile, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -25,19 +28,31 @@ const labels = [
   { key: "order", title: "Очередь" },
   { key: "link", title: "Ссылка", link: true },
   { key: "city", title: "Локация" },
-  { key: "presentation", title: "Отображение" },
+  { key: "image_url", title: "Отображение", image: true },
   { key: "status", title: "Статус", status: true },
 ];
 
-const schema = yup
-  .object({
-    city_id: yup.string().required("Oбязательное поле"),
-    priority: yup.number().required("Oбязательное поле"),
-    link: yup.string().required("Oбязательное поле"),
-    image: yup.mixed().required("Oбязательное поле"),
-    is_active: yup.boolean().required("Oбязательное поле"),
-  })
-  .required();
+const schema = yup.object().shape({
+  name: yup.string().required('Название обязательно'),
+  city_id: yup.string().required('Город обязателен'),
+  priority: yup.string().required('Приоритет обязателен'),
+  link: yup.string().when('priority', {
+    is: 'link',
+    then: (schema) => schema.required('Ссылка обязательна'),
+    otherwise: (schema) => schema.nullable()
+  }),
+  advertisment: yup.string().when('priority', {
+    is: 'advertisment',
+    then: (schema) => schema.required('Объявление обязательно'),
+    otherwise: (schema) => schema.nullable()
+  }),
+  category: yup.string().when('priority', {
+    is: 'category',
+    then: (schema) => schema.required('Категория обязательна'),
+    otherwise: (schema) => schema.nullable()
+  }),
+  image: yup.mixed().required('Изображение обязательно')
+});
 
 type FormSchemaType = yup.InferType<typeof schema>;
 
@@ -54,11 +69,18 @@ export default function BannersPage() {
     },
     fetcher
   );
-  const cities = useSWR({url: "city/list"}, fetcher)
+  const cities = useSWR(
+    {
+      url: "city/count",
+      data: { request: { search: "", sort_by: "", sort_dir: "" } },
+    },
+    post
+  );
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     control,
     reset,
@@ -66,6 +88,7 @@ export default function BannersPage() {
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
+  console.log({errors, priority: watch("priority")})
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
@@ -86,11 +109,9 @@ export default function BannersPage() {
           city: el.city.name.ru,
           order: el.priority,
           status: el.is_active ? "active" : "not_active",
-          link: el.link
+          link: el.link,
         })),
         labels: labels,
-        sort: ["order", "city", "status"],
-        filters: ["city", "status"],
         control: {
           action: () => setOpen(true),
           label: "Добавить",
@@ -100,9 +121,10 @@ export default function BannersPage() {
           const banner = data.result.find((el) => el.id === id);
           if (banner) {
             setValue("city_id", banner.city.id);
-            setValue("priority", banner.priority);
+            setValue("name", banner.title);
             setValue("link", banner.link);
-            setValue("is_active", banner.is_active);
+            setValue("advertisment", banner.advertisment);
+            setValue("category", banner.category);
             setOpen(true);
             setEdit(id);
           }
@@ -118,18 +140,21 @@ export default function BannersPage() {
   }, []);
 
   async function save(data: FormSchemaType) {
-    const formData = new FormData();
-    formData.append("city_id", data.city_id);
-    formData.append("priority", data.priority.toString());
-    formData.append("link", data.link);
-    formData.append("is_active", data.is_active.toString());
+
+      const formData = new FormData();
+      formData.append("title", data.name)
+      formData.append("city_id", data.city_id)
+      formData.append("priority", "0")
+      formData.append("link", data.link)
+      formData.append("advertisment", data.advertisment )
+      formData.append("category", data.category)
+
     if (data.image instanceof File) {
       formData.append("image", data.image);
     }
-
-    const res = await post({
+    const res = await postFile({
       url: `banner/create`,
-      data: formData,
+      data: formData
     });
     if (res.statusCode === 200) {
       reset();
@@ -143,14 +168,20 @@ export default function BannersPage() {
     formData.append("city_id", data.city_id);
     formData.append("priority", data.priority.toString());
     formData.append("link", data.link);
-    formData.append("is_active", data.is_active.toString());
     if (data.image instanceof File) {
       formData.append("image", data.image);
     }
 
     const res = await edit({
       url: `banner/${isEdit}`,
-      data: formData,
+      data: {
+        title: data.name,
+        city_id: data.city_id,
+        link: data.link,
+        advertisment: data.advertisment,
+        category: data.category,
+        
+      },
     });
     if (res.statusCode === 200) {
       reset();
@@ -170,17 +201,42 @@ export default function BannersPage() {
 
   if (isLoading) return <Spinner />;
 
+ async function handleDrag(newData: any) {
+  const res = await post({
+    url: `banner/reorder`,
+    data: {
+      priorities: newData.map((el: any) => ({
+        id: el.id,  
+        priority: el.order,
+      })),
+    },
+  });
+  if (res.statusCode === 200) {
+    mutate();
+  }
+  }
+
   return (
     <div>
       <Header title={"Баннеры"} subTitle={"Информация"} />
-      <Table />
-      {isOpen &&
+      <Table draggable onDrag={handleDrag} />
+      {(isOpen || isEdit) &&
         createPortal(
-          <ModalSave label={"Добавить баннер"} onSave={handleSubmit(save)} close={() => {
-            setOpen(false)
-            reset()
-          }}>
+          <ModalSave
+            label={"Добавить баннер"}
+            onSave={handleSubmit(isEdit ? onEdit : save)}
+            close={() => {
+              setOpen(false);
+              setEdit(null);
+              reset();
+            }}
+          >
             <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label label="Название" />
+                <Input placeholder="Название" {...register("name")} />
+                <FieldError error={errors.name?.message} />
+              </div>
               <div className="flex flex-col gap-2">
                 <Label label="Город" />
                 <Controller
@@ -188,23 +244,34 @@ export default function BannersPage() {
                   name="city_id"
                   render={({ field }) => (
                     <Select
-                      data={cities.data?.result}
-                      options={cities.data?.result.map((el) => ({value: el.id, label: el.name.ru}))}
+                      options={cities.data?.result.map((el) => ({
+                        value: el.id,
+                        label: el.name,
+                      }))}
+                      data={field.value ?  field.value : "Город"}
                       onChange={field.onChange}
                     />
                   )}
-                />  
+                />
+                <FieldError error={errors.city_id?.message} />
               </div>
 
               <div className="flex flex-col gap-2">
                 <Label label="Изображение" />
                 <InputFile
                   placeholder="Перенесите сюда файл"
-                  onChange={(file) => setValue("image", file)}/>
+                  onChange={(file) => setValue("image", file)}
+                />
+                <FieldError error={errors.image?.message} />
               </div>
               <div className="flex flex-col gap-2">
                 <Label label="Приоритетность" />
-                <BannerPrior register={register} errors={errors} control={control} />
+                <BannerPrior
+                  register={register}
+                  errors={errors}
+                  control={control}
+                  setValue={setValue}
+                />
               </div>
             </div>
           </ModalSave>,
@@ -220,6 +287,7 @@ export default function BannersPage() {
           />,
           document.getElementById("page-wrapper")
         )}
+
     </div>
   );
 }

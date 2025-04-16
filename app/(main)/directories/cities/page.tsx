@@ -75,7 +75,7 @@ export default function CitiesPage() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result.map((el) => ({ ...el, name: el.name.ru })),
+        data: data.result.map((el) => ({ ...el })),
         labels: labels,
         control: {
           action: () => setOpen(true),

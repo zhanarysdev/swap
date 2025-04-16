@@ -38,17 +38,26 @@ const labels = [
 ];
 
 export default function ModerationPublicationsPage() {
-  const {context, setContext} = useContext(TableContext)
+  const { context, setContext } = useContext(TableContext);
 
   const { data, isLoading, mutate } = useSWR(
     { url: `moderation/tasks?status=pending_review&page=1&limit=10` },
     fetcher
   );
   useEffect(() => {
-    if (data?.result) {
+    if (data?.result?.tasks) {
       setContext({
         ...context,
-        data: data?.result.tasks.map((el: any) => ({...el, deadline: `${new Date(el.start_date).toLocaleDateString()} - ${new Date(el.end_date).toLocaleDateString()}`, id: el.task_id})),
+        data: data?.result.tasks?.map((el: any) => ({
+          ...el,
+          deadline: `${new Date(
+            el.start_date
+          ).toLocaleDateString()} - ${new Date(
+            el.end_date
+          ).toLocaleDateString()}`,
+          id: el.task_id,
+        })),
+        filters: ['business_name', 'budget', 'deadline', 'category'],
         labels: labels,
         goTo: "/moderation/publications",
       });
@@ -58,7 +67,7 @@ export default function ModerationPublicationsPage() {
   return (
     <div>
       <Header title={"Модерация"} subTitle={"Информация"} />
-      <Table /> 
+      <Table />
     </div>
   );
 }

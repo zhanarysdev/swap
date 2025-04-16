@@ -58,21 +58,20 @@ export default function BusinesPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `superadmin/v1/businesses/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      url: `superadmin/v1/businesses/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue ?? ""}${context.filterValue.city ? `&city=${context.filterValue.city}` : ""}${context.filterValue.category ? `&categoryId=${context.filterValue.category}` : ""}`,
       custom: true,
     },
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 2000
+    }
   );
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
-
-  useEffect(() => {
-    if (debouncedSearch) {
-      mutate();
-    }
-  }, [debouncedSearch]);
 
   useEffect(() => {
     if (data?.result) {
@@ -89,7 +88,7 @@ export default function BusinesPage() {
           "lastTaskDate",
           "taskCount",
         ],
-        filters: ["city", "category", "taskCount"],
+        filters: ["city", "category"],
       }));
     }
   }, [data, setContext]);
