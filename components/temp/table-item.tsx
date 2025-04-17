@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { Checkbox } from "../checkbox/checkbox";
 
-export const TableItem = ({number, item, el, index, checked, setChecked}: {
+export const TableItem = ({
+  number,
+  item,
+  el,
+  index,
+  checked,
+  setChecked,
+}: {
   number?: boolean;
   item: any;
   el: any;
@@ -14,7 +21,13 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
   }
   if (item.link) {
     const link = el[item.key].split("@");
-    return <Link href={`${item.link === true ? "" : item.link}${link[1] ? `${link[1]}` : el[item.key]}`}>{el[item.key]}</Link>;
+    return (
+      <Link
+        href={`${item.link === true ? "" : item.link}${link[1] ? `${link[1]}` : el[item.key]}`}
+      >
+        {el[item.key]}
+      </Link>
+    );
   }
 
   if (item.name) {
@@ -22,47 +35,62 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
   }
 
   if (item.key === "id") {
-    return number ? index + 1 : <Checkbox checked={checked.includes(el.id)} onChange={() => setChecked(prev => ({...prev, checked: [...prev.checked, el.id]}))} />;
+    return number ? (
+      index + 1
+    ) : (
+      <Checkbox
+        checked={checked.includes(el.id)}
+        onChange={() => {
+          setChecked((prev) => {
+            if (checked.includes(el.id)) {
+              return {
+                ...prev,
+                checked: checked.filter((old) => old !== el.id),
+              };
+            }
+            return { ...prev, checked: [...prev.checked, el.id] };
+          });
+        }}
+      />
+    );
   }
 
-
-  if(item.gender) {
-    if(el[item.key] === "man" || el[item.key] === "male") {
-      return "Мужской"
+  if (item.gender) {
+    if (el[item.key] === "man" || el[item.key] === "male") {
+      return "Мужской";
     }
-    if(el[item.key] === "female") {
-      return "Женский"
+    if (el[item.key] === "female") {
+      return "Женский";
     }
   }
 
   if (item.rank) {
     if (el[item.key].name === "gold") {
-      return "Золото"
+      return "Золото";
     }
     if (el[item.key].name === "silver") {
-      return "Серебро"
+      return "Серебро";
     }
     if (el[item.key].name === "bronze") {
-      return "Бронза"
+      return "Бронза";
     }
-    if(el[item.key].name === "platinum") {
-      return "Платина"
+    if (el[item.key].name === "platinum") {
+      return "Платина";
     }
   }
   if (item.restriction) {
     if (el[item.key]) {
-      return "Да"
+      return "Да";
     } else {
-      return "Нет"
+      return "Нет";
     }
-
   }
-  if(item.image) {
-    return <img className="h-[80px]" src={el[item.key]} />
+  if (item.image) {
+    return <img className="h-[80px]" src={el[item.key]} />;
   }
 
   if (item.status) {
-    if(el[item.key] === 'active') {
+    if (el[item.key] === "active") {
       return (
         <div className="flex items-center gap-2">
           <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>
@@ -70,7 +98,7 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
         </div>
       );
     }
-    if(el[item.key] === 'not_active') {
+    if (el[item.key] === "not_active") {
       return (
         <div className="flex items-center gap-2">
           <div className="w-[8px] h-[8px] rounded-full bg-[#1BFF1B]"></div>
@@ -78,7 +106,7 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
         </div>
       );
     }
-    if(el[item.key] === 'report') {
+    if (el[item.key] === "report") {
       return (
         <div className="flex items-center gap-2">
           <div className="w-[8px] h-[8px] rounded-full bg-[#FF1B1B]"></div>
@@ -86,7 +114,7 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
         </div>
       );
     }
-    if(el[item.key] === 'pending_review') {
+    if (el[item.key] === "pending_review") {
       return (
         <div className="flex items-center gap-2">
           <div className="w-[8px] h-[8px] rounded-full bg-[#FFA500]"></div>
@@ -117,10 +145,11 @@ export const TableItem = ({number, item, el, index, checked, setChecked}: {
 
   return (
     <div
-      className={`${item.rounded
+      className={`${
+        item.rounded
           ? "border rounded-[10px] w-fit px-3 py-[6px] text-[12px] leading-[12px]"
           : ""
-        }`}
+      }`}
     >
       {el[item.key]}
     </div>
