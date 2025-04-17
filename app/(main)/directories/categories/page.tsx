@@ -65,9 +65,14 @@ export default function DirCategoriesPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `business/category/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      url: `business/category/list`,
+      data: {
+        search: debouncedSearch,
+        sort_by: context.sortValue,
+        sort_dir: "",
+      },
     },
-    fetcher
+    post,
   );
 
   useEffect(() => {
@@ -160,7 +165,7 @@ export default function DirCategoriesPage() {
               </div>
             </div>
           </ModalSave>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
 
       {isDelete &&
@@ -170,7 +175,7 @@ export default function DirCategoriesPage() {
             close={() => setDelete(null)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );

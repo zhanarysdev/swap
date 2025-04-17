@@ -53,8 +53,14 @@ export default function CitiesPage() {
   const debouncedSearch = useDebounce(context.search, 500);
 
   const { data, isLoading, mutate } = useSWR(
-    { url: `city/count?search=${debouncedSearch}&sortBy=${context.sortValue}` },
-    fetcher
+    {
+      url: `city/count`,
+      data: {
+        search: debouncedSearch,
+        sort: context.sortValue,
+      },
+    },
+    post,
   );
 
   const {
@@ -85,7 +91,7 @@ export default function CitiesPage() {
         onEdit: (id) => {
           setValue(
             "name",
-            data.result.find((el) => el.id === id)?.name.ru as any
+            data.result.find((el) => el.id === id)?.name.ru as any,
           );
           setOpen(true);
           setEdit(id);
@@ -159,7 +165,7 @@ export default function CitiesPage() {
               </div>
             </div>
           </ModalSave>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
 
       {isDelete &&
@@ -169,7 +175,7 @@ export default function CitiesPage() {
             close={() => setDelete(null)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );

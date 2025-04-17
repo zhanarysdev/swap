@@ -174,9 +174,13 @@ export default function CitiesPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `clothes/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      url: `clothes/list`,
+      data: {
+        search: debouncedSearch,
+        sort: context.sortValue,
+      },
     },
-    fetcher
+    post,
   );
 
   const {
@@ -278,7 +282,7 @@ export default function CitiesPage() {
               </div>
             </div>
           </ModalSave>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
 
       {isDelete &&
@@ -288,7 +292,7 @@ export default function CitiesPage() {
             close={() => setDelete(null)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );

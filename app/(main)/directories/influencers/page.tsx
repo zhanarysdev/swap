@@ -72,9 +72,13 @@ export default function InfluencersPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `rank/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      url: `rank/list`,
+      data: {
+        search: debouncedSearch,
+        sort: context.sortValue,
+      },
     },
-    fetcher
+    post,
   );
 
   const {
@@ -199,7 +203,7 @@ export default function InfluencersPage() {
               </div>
             </div>
           </ModalSave>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
 
       {isDelete &&
@@ -209,7 +213,7 @@ export default function InfluencersPage() {
             close={() => setDelete(null)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );

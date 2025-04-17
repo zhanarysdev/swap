@@ -56,9 +56,13 @@ export default function ContentPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `content/list?search=${debouncedSearch}&sortBy=${context.sortValue}`,
+      url: `content/list`,
+      data: {
+        search: debouncedSearch,
+        sort: context.sortValue,
+      },
     },
-    fetcher
+    post,
   );
 
   const {
@@ -180,7 +184,7 @@ export default function ContentPage() {
               </div>
             </div>
           </ModalSave>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
 
       {isDelete &&
@@ -190,7 +194,7 @@ export default function ContentPage() {
             close={() => setDelete(null)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );
