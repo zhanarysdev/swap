@@ -149,9 +149,9 @@ export default function CategoriesPage() {
     const res = await post({
       url: `selection/reorder`,
       data: {
-        priorities: newData.map((el: any) => ({
-          id: el.id,
-          priority: el.order,
+        orders: newData.map((el: any) => ({
+          selection_id: el.id,
+          order: el.order,
         })),
       },
     });

@@ -152,7 +152,7 @@ const RegularRow = ({
       ))}
       {(onDelete || onEdit || goTo) && (
         <td className="border-b border-lightGrey">
-          <div className="flex gap-4 text-left border-b border-lightGrey font-semibold text-base px-3 py-2 leading-5 ">
+          <div className="flex gap-4 text-left  font-semibold text-base px-3 py-2 leading-5 ">
             {goTo && (
               <Link href={`${goTo}/${el.id}`}>
                 <Icon name="GoTo" />

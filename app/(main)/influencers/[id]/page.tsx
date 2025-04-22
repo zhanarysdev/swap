@@ -12,7 +12,10 @@ import { MultiSelect } from "@/components/select/multi-select";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
-import { default_context, TableContext } from "@/components/temp/table-provider";
+import {
+  default_context,
+  TableContext,
+} from "@/components/temp/table-provider";
 import { edit, fetcher, post, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams, useRouter } from "next/navigation";
@@ -79,14 +82,20 @@ export default function InfluencersId() {
   const [isEdit, setEdit] = useState(false);
   const { data, isLoading, mutate } = useSWR(
     { url: `influencer/${id}` },
-    fetcher
+    fetcher,
   );
 
-  const cities = useSWR({ url: `city/count`, data: {
-  "search": "",
-  "sort_by": "name",
-  "sort_dir": "asc"
-}  }, post);
+  const cities = useSWR(
+    {
+      url: `city/count`,
+      data: {
+        search: "",
+        sort_by: "name",
+        sort_dir: "asc",
+      },
+    },
+    post,
+  );
   const categories = useSWR({ url: "categories" }, fetcher);
 
   const [isOpen, setOpen] = useState(false);
@@ -106,7 +115,6 @@ export default function InfluencersId() {
 
   const { context, setContext } = useContext(TableContext);
 
-
   useEffect(() => {
     if (data?.result) {
       reset({
@@ -122,7 +130,6 @@ export default function InfluencersId() {
     }
   }, [data, reset]);
 
-  
   async function save(data: FormData) {
     const res = await edit({
       url: `influencer/${id}`,
@@ -137,16 +144,16 @@ export default function InfluencersId() {
         restricted_ad: data.restriction === "Да" ? true : false,
       },
     }); // Specify the collection and document ID
-    if (res.result ) {
+    if (res.result) {
       mutate();
-      setEdit(false)
+      setEdit(false);
     }
   }
   const link = watch("instagram")?.split("@");
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
-  
+
   useEffect(() => {
     if (data?.result) {
       setContext((prev) => ({
@@ -177,7 +184,8 @@ export default function InfluencersId() {
             onClick={() => push("/influencers")}
           />
           <span className="text-grey font-bold text-base leading-5">
-            Регистрация: {new Date(data?.result?.created_at).toLocaleDateString()}
+            Регистрация:{" "}
+            {new Date(data?.result?.created_at).toLocaleDateString()}
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -197,7 +205,10 @@ export default function InfluencersId() {
       </div>
       <form className="flex gap-[42px]">
         <div className="flex flex-col gap-6 w-full">
-          <img className={`bg-lightGrey w-full h-[288px] rounded-2xl flex object-cover` } src={data?.result?.image}/>
+          <img
+            className={`bg-lightGrey w-full h-[288px] rounded-2xl flex object-cover`}
+            src={data?.result?.image}
+          />
           <div>
             {!isEdit ? (
               <InputLink
@@ -213,16 +224,26 @@ export default function InfluencersId() {
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={
-                watch("rating") === "silver" ? "Серебро" : watch("rating") === "gold" ? "Золото" : "Бронза" 
-              } />
+              <InputLink
+                label={
+                  watch("rating") === "silver"
+                    ? "Серебро"
+                    : watch("rating") === "gold"
+                      ? "Золото"
+                      : "Бронза"
+                }
+              />
             ) : (
               <>
                 <Controller
                   render={({ field: { onChange, value } }) => (
                     <Select
                       data={value ? value : "Рейтинг"}
-                      options={[{ value: "silver", label: "Серебро" }, { value: "gold", label: "Золото" }, { value: "bronze", label: "Бронза" }]}
+                      options={[
+                        { value: "silver", label: "Серебро" },
+                        { value: "gold", label: "Золото" },
+                        { value: "bronze", label: "Бронза" },
+                      ]}
                       onChange={onChange}
                     />
                   )}
@@ -256,9 +277,7 @@ export default function InfluencersId() {
                 <Controller
                   name="phone"
                   control={control}
-                  render={({ field }) => (
-                    <InputPhone {...field} />
-                  )}
+                  render={({ field }) => <InputPhone {...field} />}
                 />
                 <FieldError error={errors.phone?.message} />
               </>
@@ -288,7 +307,15 @@ export default function InfluencersId() {
           </div>
           <div>
             {!isEdit ? (
-              <InputLink label={watch("gender") === "male" ? "Мужчина" : watch("gender") === "female" ? "Женшина" : "Пол"} />
+              <InputLink
+                label={
+                  watch("gender") === "male"
+                    ? "Мужчина"
+                    : watch("gender") === "female"
+                      ? "Женшина"
+                      : "Пол"
+                }
+              />
             ) : (
               <>
                 <Controller
@@ -349,14 +376,13 @@ export default function InfluencersId() {
                 label={watch("category")
                   ?.map(
                     (val) =>
-                      categories.data?.result.find((el) => el.id === val)?.name
+                      categories.data?.result.find((el) => el.id === val)?.name,
                   )
                   .filter(Boolean)
                   .join(", ")}
               />
             ) : (
               <>
-
                 <Controller
                   control={control}
                   render={({ field: { onChange, value } }) => {
@@ -410,18 +436,23 @@ export default function InfluencersId() {
       </form>
       <div className="mt-[64px]">
         <h2 className="text-[24px] font-bold leading-7 mb-8">
+          {console.log(data)}
           Посещения 5/2
         </h2>
-        <Table/>
+        <Table />
       </div>
       {isDelete &&
         createPortal(
-          <ModalDelete label={"Удалить "} close={() => setDelete(false)} onDelete={() => {
-            edit({url: `influencer/${id}/delete`, data: {id: isDelete}});
-            setDelete(false);
-            push("/influencers");
-          }} />,
-          document.getElementById("page-wrapper")
+          <ModalDelete
+            label={"Удалить "}
+            close={() => setDelete(false)}
+            onDelete={() => {
+              edit({ url: `influencer/${id}/delete`, data: { id: isDelete } });
+              setDelete(false);
+              push("/influencers");
+            }}
+          />,
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );
