@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Checkbox } from "../checkbox/checkbox";
+import { format } from "date-fns";
 
 export const TableItem = ({
   number,
@@ -18,6 +19,9 @@ export const TableItem = ({
 }) => {
   if (item.boolean) {
     return el[item.key] ? "Hет" : "Да";
+  }
+  if (item.date && el[item.key]) {
+    return format(new Date(el[item.key]), "dd.MM.yyyy");
   }
   if (item.link) {
     const link = el[item.key].split("@");

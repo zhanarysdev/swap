@@ -49,6 +49,7 @@ const labels = [
   {
     key: "lastTaskDate",
     title: "Последнее объявление",
+    date: true,
   },
 ];
 
@@ -65,8 +66,8 @@ export default function BusinesPage() {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 2000
-    }
+      dedupingInterval: 2000,
+    },
   );
 
   useEffect(() => {
@@ -77,7 +78,10 @@ export default function BusinesPage() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result.items,
+        data: data.result.items.map((el) => ({
+          ...el,
+          socialNetwork: `@${el.socialNetwork}`,
+        })),
         labels: labels,
         goTo: "/busines",
         sort: [
@@ -92,6 +96,7 @@ export default function BusinesPage() {
       }));
     }
   }, [data, setContext]);
+  console.log(data);
 
   useEffect(() => {
     return () => {

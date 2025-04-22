@@ -435,10 +435,7 @@ export default function InfluencersId() {
         </div>
       </form>
       <div className="mt-[64px]">
-        <h2 className="text-[24px] font-bold leading-7 mb-8">
-          {console.log(data)}
-          Посещения 5/2
-        </h2>
+        <h2 className="text-[24px] font-bold leading-7 mb-8">Посещения 5/2</h2>
         <Table />
       </div>
       {isDelete &&
