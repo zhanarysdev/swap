@@ -5,10 +5,12 @@ export const Select = ({
   data,
   options,
   onChange,
+  disabled,
 }: {
   data: string;
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
+  disabled: Boolean;
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [value, setValue] = useState(() => data);
@@ -40,12 +42,12 @@ export const Select = ({
         <div
           onClick={() => setOpen((old) => !old)}
           className={`styled-select bg-[#333333] w-full rounded-2xl py-[15px] px-[25px] text-base leading-5 font-medium ${
-            isOpen ? "rounded-bl-none rounded-br-none" : ""
+            !disabled && isOpen ? "rounded-bl-none rounded-br-none" : ""
           }`}
         >
           <option
             value={value}
-            className="cursor-pointer py-[1px] text-base leading-5 font-medium"
+            className={`cursor-pointer py-[1px] text-base leading-5 font-medium ${disabled ? "text-[#aaa]" : ""}`}
           >
             {options.find((el) => el.value === value)?.label}
           </option>
@@ -59,7 +61,7 @@ export const Select = ({
         />
       </div>
 
-      {isOpen && (
+      {!disabled && isOpen && (
         <div className="absolute flex flex-col gap-4 z-10 styled-select bg-[#333333] w-full rounded-tl-none rounded-tr-none rounded-2xl px-[13px] pb-4">
           {options.map(({ value, label }) => (
             <div

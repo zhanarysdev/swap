@@ -84,19 +84,11 @@ export default function BusinesPage() {
         })),
         labels: labels,
         goTo: "/busines",
-        sort: [
-          "name",
-          "city",
-          "balance",
-          "category",
-          "lastTaskDate",
-          "taskCount",
-        ],
+        sort: ["name", "city", "category", "lastTaskDate"],
         filters: ["city", "category"],
       }));
     }
   }, [data, setContext]);
-  console.log(data);
 
   useEffect(() => {
     return () => {

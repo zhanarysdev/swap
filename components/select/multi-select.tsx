@@ -5,10 +5,12 @@ export const MultiSelect = ({
   data,
   options,
   onChange,
+  disabled,
 }: {
   data: string[];
   options: { value: string; label: string }[];
   onChange: (v: string[]) => void;
+  disabled: boolean;
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [curValue, setValue] = useState(() => data);
@@ -40,12 +42,12 @@ export const MultiSelect = ({
         <div
           onClick={() => setOpen((old) => !old)}
           className={`styled-select bg-[#333333] w-full rounded-2xl py-[15px] px-[25px] text-base leading-5 font-medium ${
-            isOpen ? "rounded-bl-none rounded-br-none" : ""
+            !disabled && isOpen ? "rounded-bl-none rounded-br-none" : ""
           }`}
         >
           <option
             value={curValue}
-            className="cursor-pointer py-[1px] text-base leading-5 font-medium"
+            className={`cursor-pointer py-[1px] text-base leading-5 font-medium ${disabled ? "text-[#aaa]" : ""}`}
           >
             {curValue
               .map((val) => options.find((el) => el.value === val)?.label)
@@ -62,7 +64,7 @@ export const MultiSelect = ({
         />
       </div>
 
-      {isOpen && (
+      {!disabled && isOpen && (
         <div className="absolute flex flex-col gap-4 z-10 styled-select bg-[#333333] w-full rounded-tl-none rounded-tr-none rounded-2xl px-[13px] pb-4">
           {options.map(({ value, label }) => (
             <div

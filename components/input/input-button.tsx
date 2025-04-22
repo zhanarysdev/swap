@@ -14,7 +14,7 @@ export function InputButton({ add, ...props }: InputButtonProps) {
       />
       <div
         className="rounded-[15px] w-[50px] h-[50px] bg-primary flex justify-center items-center ml-auto mr-[2px] cursor-pointer"
-        onClick={add}
+        onClick={props.disabled ? null : add}
       >
         <Icon name="Plus" className="text-black" />
       </div>

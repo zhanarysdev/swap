@@ -94,7 +94,7 @@ export default function BusinesId() {
   const [isEdit, setEdit] = useState(false);
   const { data, isLoading, mutate } = useSWR(
     { url: `superadmin/v1/business/${id}`, custom: true },
-    fetcher
+    fetcher,
   );
   const cities = useSWR(
     {
@@ -105,7 +105,7 @@ export default function BusinesId() {
         sort_dir: "asc",
       },
     },
-    post
+    post,
   );
   const categories = useSWR(
     {
@@ -116,7 +116,7 @@ export default function BusinesId() {
         sort_dir: "asc",
       },
     },
-    post
+    post,
   );
 
   const [isOpen, setOpen] = useState(false);
@@ -152,7 +152,7 @@ export default function BusinesId() {
       });
     }
   }, [data, reset]);
-  const { back } = useRouter();
+  const { push } = useRouter();
 
   async function onRemove() {
     const res = await remove({
@@ -160,7 +160,7 @@ export default function BusinesId() {
       custom: true,
     });
     setDelete(null);
-    mutate();
+    push("/busines");
   }
 
   async function save(data: FormSchemaType) {
@@ -221,7 +221,7 @@ export default function BusinesId() {
             preIcon={<Icon name="Caret" />}
             bg={ButtonBG.grey}
             label={"Назад"}
-            onClick={back}
+            onClick={() => push("/busines")}
           />
         </div>
         <div className="flex items-center gap-4">
@@ -248,218 +248,184 @@ export default function BusinesId() {
         <h1 className="text-[36px] font-bold leading-[40px] mb-8"></h1>
         <form id="business-form" className="flex flex-col gap-6">
           <div className="flex gap-12 max-w-[948px] w-full">
-            {!isEdit ? (
-              <InputLink label={watch("name")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label={"Название компании"} />
-                <Input
-                  placeholder="Название"
-                  name="name"
-                  {...register("name")}
-                />
-                <FieldError error={errors.name?.message} />
-              </div>
-            )}
-            {!isEdit ? (
-              <InputLink label={watch("phoneNumber")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label={"Номер телефона"} />
-                <Controller
-                  control={control}
-                  render={({ field: { onChange, value } }) => {
-                    const cleaned = String(value).replace(/\D/g, "");
-                    const formatted = format(cleaned, {
-                      mask: "+7 (___) ___-___-__",
-                      replacement: { _: /\d/ },
-                    });
-                    return <InputPhone value={formatted} onChange={onChange} />;
-                  }}
-                  name="phoneNumber"
-                />
-                <FieldError error={errors.phoneNumber?.message} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-12 max-w-[948px] w-full">
-            {!isEdit ? (
-              <InputLink label={watch("bin")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label={"БИН"} />
-                <Input placeholder="БИН" name="bin" {...register("bin")} />
-                <FieldError error={errors.bin?.message} />
-              </div>
-            )}
-            {!isEdit ? (
-              <InputLink label={watch("contact")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label={"Номер телефона менеджера в приложении"} />
-                <Controller
-                  control={control}
-                  render={({ field: { onChange, value } }) => {
-                    const cleaned = String(value).replace(/\D/g, "");
-                    const formatted = format(cleaned, {
-                      mask: "+7 (___) ___-___-__",
-                      replacement: { _: /\d/ },
-                    });
-                    return <InputPhone value={formatted} onChange={onChange} />;
-                  }}
-                  name="contact"
-                />
-                <FieldError error={errors.contact?.message} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-12 max-w-[948px] w-full">
-            {!isEdit ? (
-              <InputLink
-                label={watch("category")
-                  ?.map(
-                    (val) =>
-                      categories.data?.result.find((el) => el.id === val)?.name
-                  )
-                  .filter(Boolean)
-                  .join(", ")}
+            <div className="flex flex-col gap-2 w-full">
+              <Label label={"Название компании"} />
+              <Input
+                disabled={!isEdit}
+                placeholder="Название"
+                name="name"
+                {...register("name")}
               />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label={"Категория бизнеса"} />
-                <Controller
-                  control={control}
-                  render={({ field: { onChange, value } }) => {
-                    return (
-                      <MultiSelect
-                        data={value ? value : ["Категория бизнеса"]}
-                        options={categories.data?.result.map((el) => ({
+              <FieldError error={errors.name?.message} />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Label label={"Номер телефона"} />
+              <Controller
+                control={control}
+                render={({ field: { onChange, value } }) => {
+                  const cleaned = String(value).replace(/\D/g, "");
+                  const formatted = format(cleaned, {
+                    mask: "+7 (___) ___-___-__",
+                    replacement: { _: /\d/ },
+                  });
+                  return (
+                    <InputPhone
+                      disabled={!isEdit}
+                      value={formatted}
+                      onChange={onChange}
+                    />
+                  );
+                }}
+                name="phoneNumber"
+              />
+              <FieldError error={errors.phoneNumber?.message} />
+            </div>
+          </div>
+
+          <div className="flex gap-12 max-w-[948px] w-full">
+            <div className="flex flex-col gap-2 w-full">
+              <Label label={"БИН"} />
+              <Input
+                placeholder="БИН"
+                disabled={!isEdit}
+                name="bin"
+                {...register("bin")}
+              />
+              <FieldError error={errors.bin?.message} />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Label label={"Номер телефона менеджера в приложении"} />
+              <Controller
+                control={control}
+                render={({ field: { onChange, value } }) => {
+                  const cleaned = String(value).replace(/\D/g, "");
+                  const formatted = format(cleaned, {
+                    mask: "+7 (___) ___-___-__",
+                    replacement: { _: /\d/ },
+                  });
+                  return (
+                    <InputPhone
+                      disabled={!isEdit}
+                      value={formatted}
+                      onChange={onChange}
+                    />
+                  );
+                }}
+                name="contact"
+              />
+              <FieldError error={errors.contact?.message} />
+            </div>
+          </div>
+
+          <div className="flex gap-12 max-w-[948px] w-full">
+            <div className="flex flex-col gap-2 w-full">
+              <Label label={"Категория бизнеса"} />
+              <Controller
+                control={control}
+                render={({ field: { onChange, value } }) => {
+                  return (
+                    <MultiSelect
+                      disabled={!isEdit}
+                      data={value ? value : ["Категория бизнеса"]}
+                      options={categories.data?.result.map((el) => ({
+                        label: el.name,
+                        value: el.id,
+                      }))}
+                      onChange={onChange}
+                    />
+                  );
+                }}
+                name={"category"}
+              />
+              <FieldError error={errors.category?.message} />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Label label="Город" />
+              <Controller
+                control={control}
+                render={({ field: { onChange, value } }) => {
+                  return (
+                    <Select
+                      disabled={!isEdit}
+                      data={value ? value : "Город"}
+                      options={cities.data?.result.map((el: any) => {
+                        return {
                           label: el.name,
                           value: el.id,
-                        }))}
-                        onChange={onChange}
-                      />
-                    );
-                  }}
-                  name={"category"}
-                />
-                <FieldError error={errors.category?.message} />
-              </div>
-            )}
-            {!isEdit ? (
-              <InputLink
-                label={
-                  cities.data?.result.find((el) => el.id === watch("city"))
-                    ?.name
-                }
+                        };
+                      })}
+                      onChange={onChange}
+                    />
+                  );
+                }}
+                name={"city"}
               />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label="Город" />
-                <Controller
-                  control={control}
-                  render={({ field: { onChange, value } }) => {
-                    return (
-                      <Select
-                        data={value ? value : "Город"}
-                        options={cities.data?.result.map((el: any) => {
-                          return {
-                            label: el.name,
-                            value: el.id,
-                          };
-                        })}
-                        onChange={onChange}
-                      />
-                    );
-                  }}
-                  name={"city"}
-                />
-                <FieldError error={errors.city?.message} />
-              </div>
-            )}
+              <FieldError error={errors.city?.message} />
+            </div>
           </div>
 
           <div className="flex gap-12 max-w-[948px] w-full">
-            {!isEdit ? (
-              <InputLink label={watch("instagram")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label="Instagram" />
-                <Input
-                  placeholder="Instagram"
-                  name="instagram"
-                  {...register("instagram")}
-                />
-                <FieldError error={errors.instagram?.message} />
-              </div>
-            )}
-            {!isEdit ? (
-              <InputLink label={watch("address")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label="Юредический адрес" />
-                <Input
-                  placeholder="Юредический адрес"
-                  name="address"
-                  {...register("address")}
-                />
-                <FieldError error={errors.address?.message} />
-              </div>
-            )}
+            <div className="flex flex-col gap-2 w-full">
+              <Label label="Instagram" />
+              <Input
+                placeholder="Instagram"
+                disabled={!isEdit}
+                name="instagram"
+                {...register("instagram")}
+              />
+              <FieldError error={errors.instagram?.message} />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Label label="Юредический адрес" />
+              <Input
+                disabled={!isEdit}
+                placeholder="Юредический адрес"
+                name="address"
+                {...register("address")}
+              />
+              <FieldError error={errors.address?.message} />
+            </div>
           </div>
 
           <div className="flex gap-12 max-w-[948px] w-full">
-            {!isEdit ? (
-              <InputLink label={watch("balance")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label={"Баланс"} />
-                <Input
-                  placeholder="Баланс"
-                  name="balance"
-                  {...register("balance")}
-                />
-                <FieldError error={errors.balance?.message} />
-              </div>
-            )}
-            {!isEdit ? (
-              <InputLink label={watch("filials")} />
-            ) : (
-              <div className="flex flex-col gap-2 w-full">
-                <Label label="Адрес филиала" />
-                <InputButton
-                  add={() => {
-                    if (!filials.fields.length) {
-                      filials.append("");
-                    }
-                    setOpen(true);
-                  }}
-                  placeholder="Адрес филиала"
-                  value={watch("filials") ? watch("filials").join(",") : ""}
-                />
-                <FieldError error={errors.name?.message} />
-              </div>
-            )}
+            <div className="flex flex-col gap-2 w-full">
+              <Label label={"Баланс"} />
+              <Input
+                placeholder="Баланс"
+                disabled={!isEdit}
+                name="balance"
+                {...register("balance")}
+              />
+              <FieldError error={errors.balance?.message} />
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Label label="Адрес филиала" />
+              <InputButton
+                disabled={!isEdit}
+                add={() => {
+                  if (!filials.fields.length) {
+                    filials.append("");
+                  }
+                  setOpen(true);
+                }}
+                placeholder="Адрес филиала"
+                value={watch("filials") ? watch("filials").join(",") : ""}
+              />
+              <FieldError error={errors.name?.message} />
+            </div>
           </div>
 
           <div className="flex gap-12 max-w-[948px] w-full">
             <div className="flex flex-col gap-2 w-full max-w-[450px]">
-              {!isEdit ? (
-                <Input disabled type="password" {...register("password")} />
-              ) : (
-                <>
-                  <Label label={"Новый пароль"} />
-                  <Input
-                    placeholder="Новый пароль"
-                    type="password"
-                    name="password"
-                    {...register("password")}
-                  />
-                  <FieldError error={errors.name?.message} />
-                </>
-              )}
+              <Label label={"Новый пароль"} />
+              <Input
+                placeholder="Новый пароль"
+                type="password"
+                disabled={!isEdit}
+                name="password"
+                {...register("password")}
+              />
+              <FieldError error={errors.name?.message} />
             </div>
           </div>
         </form>
@@ -493,7 +459,7 @@ export default function BusinesId() {
               <AddButton onClick={() => filials.append("")} />
             </div>
           </Modal>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
       {isDelete &&
         createPortal(
@@ -502,7 +468,7 @@ export default function BusinesId() {
             close={() => setDelete(false)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );
