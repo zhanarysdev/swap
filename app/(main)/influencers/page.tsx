@@ -7,13 +7,12 @@ import { InputFile } from "@/components/input/input-file";
 import { Label } from "@/components/input/label";
 import { Text } from "@/components/input/text";
 import { ModalSave } from "@/components/modal/modal-save";
-import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
 import {
   default_context,
   TableContext,
 } from "@/components/temp/table-provider";
-import { fetcher, post, postFile } from "@/fetcher";
+import { post, postFile } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -65,7 +64,7 @@ const labels = [
   },
 ];
 
-const sort = ["name", "city", "sex", "age", "status", "category"];
+const sort = ["fullname", "city", "gender", "age", "status", "category"];
 
 const schema = y
   .object({
@@ -107,7 +106,9 @@ export default function ModerationPage() {
         category_id: context.filterValue.category,
         city_id: context.filterValue.city,
         gender: context.filterValue.gender,
-        max_age: context.filterValue.max_age ? context.filterValue.max_age : 100,
+        max_age: context.filterValue.max_age
+          ? context.filterValue.max_age
+          : 100,
         min_age: context.filterValue.min_age ? context.filterValue.min_age : 0,
         rank_id: context.filterValue.rank,
       },
@@ -116,14 +117,13 @@ export default function ModerationPage() {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 2000
-    }
+      dedupingInterval: 2000,
+    },
   );
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
-
 
   useEffect(() => {
     if (data?.result) {
@@ -131,44 +131,44 @@ export default function ModerationPage() {
         ...prev,
         data: data.result.items
           ? data.result.items.map((el) => ({
-            ...el,
-            category: el.categories,
-            rank: el.rank,
-            advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
-            age: el.birthday
-              ? (() => {
-                try {
-                  let date;
-                  if (el.birthday.includes(".")) {
-                    // Handle "DD.MM.YYYY" format
-                    const [day, month, year] = el.birthday.split(".");
-                    date = new Date(
-                      parseInt(year),
-                      parseInt(month) - 1,
-                      parseInt(day)
-                    );
-                  } else {
-                    // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
-                    date = new Date(el.birthday.split(" ")[0]);
-                  }
+              ...el,
+              category: el.categories,
+              rank: el.rank,
+              advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
+              age: el.birthday
+                ? (() => {
+                    try {
+                      let date;
+                      if (el.birthday.includes(".")) {
+                        // Handle "DD.MM.YYYY" format
+                        const [day, month, year] = el.birthday.split(".");
+                        date = new Date(
+                          parseInt(year),
+                          parseInt(month) - 1,
+                          parseInt(day),
+                        );
+                      } else {
+                        // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
+                        date = new Date(el.birthday.split(" ")[0]);
+                      }
 
-                  if (isNaN(date.getTime())) {
-                    return "";
-                  }
+                      if (isNaN(date.getTime())) {
+                        return "";
+                      }
 
-                  const age = new Date().getFullYear() - date.getFullYear();
-                  return age > 0 ? age : "";
-                } catch (error) {
-                  return "";
-                }
-              })()
-              : "",
-          }))
+                      const age = new Date().getFullYear() - date.getFullYear();
+                      return age > 0 ? age : "";
+                    } catch (error) {
+                      return "";
+                    }
+                  })()
+                : "",
+            }))
           : [],
         labels: labels,
         goTo: "/influencers",
         sort: sort,
-        filters: ["city", "category", "gender", "min_age", "max_age", "rank"],
+        filters: ["city", "category", "gender", "rank"],
         control: {
           label: "Отправить уведомление",
           action: () => setOpen(true),
@@ -189,6 +189,7 @@ export default function ModerationPage() {
     watch,
     control,
     formState: { errors },
+    setError,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -207,6 +208,10 @@ export default function ModerationPage() {
   });
 
   const save = async (data: FormData) => {
+    if (context.checked.length === 0) {
+      setError("root", { message: "Выберите пользователей" });
+      return false;
+    }
     try {
       // First, send the notification
       const notificationFormData = new FormData();
@@ -215,15 +220,14 @@ export default function ModerationPage() {
       notificationFormData.append("from", data.label || "");
       notificationFormData.append("navigate", data.link || "");
       notificationFormData.append("link", data.link || "");
-        notificationFormData.append("image", data.photo);
-
+      notificationFormData.append("image", data.photo);
 
       const res = await postFile({
         url: "notification/send",
         data: notificationFormData,
       });
-      if(res.result) {
-        setOpen(false)
+      if (res.result) {
+        setOpen(false);
       }
     } catch (error) {
       console.error("Error updating influencers:", error);
@@ -243,6 +247,7 @@ export default function ModerationPage() {
             buttonLabel="Отправить"
           >
             <div className="flex flex-col gap-4">
+              <FieldError error={errors.root?.message} />
               <div className="flex flex-col gap-2">
                 <Label label={"Заголовок"} />
                 <Input placeholder="Заголовок" {...register("label")} />
@@ -281,7 +286,7 @@ export default function ModerationPage() {
               </div>
             </div>
           </ModalSave>,
-          document.getElementById("page-wrapper")
+          document.getElementById("page-wrapper"),
         )}
     </div>
   );

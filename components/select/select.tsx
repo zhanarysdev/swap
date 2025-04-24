@@ -10,7 +10,7 @@ export const Select = ({
   data: string;
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
-  disabled: Boolean;
+  disabled?: Boolean;
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [value, setValue] = useState(() => data);

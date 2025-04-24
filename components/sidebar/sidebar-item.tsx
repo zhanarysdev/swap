@@ -29,7 +29,7 @@ export function SideBarItem({
     <div className="flex flex-col gap-1">
       <li
         className={` px-3 hover:bg-[#383838] rounded-2xl cursor-pointer w-[269px] ${
-          pathname === href ? "bg-[#383838]" : ""
+          pathname.includes(href) ? "bg-[#383838]" : ""
         }`}
         style={href === "/directories" ? { marginTop: "24px" } : {}}
       >

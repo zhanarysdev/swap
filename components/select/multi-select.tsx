@@ -10,7 +10,7 @@ export const MultiSelect = ({
   data: string[];
   options: { value: string; label: string }[];
   onChange: (v: string[]) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) => {
   const [isOpen, setOpen] = useState(false);
   const [curValue, setValue] = useState(() => data);

@@ -61,10 +61,10 @@ export const TableItem = ({
 
   if (item.gender) {
     if (el[item.key] === "man" || el[item.key] === "male") {
-      return "Мужской";
+      return "Мужчина";
     }
     if (el[item.key] === "female") {
-      return "Женский";
+      return "Женщина";
     }
   }
 

@@ -3,6 +3,7 @@ import { Icon } from "../icons";
 import { TableContext } from "./table-provider";
 import { useDebounce } from "@/components/debuncer";
 import Radio from "../radio/radio";
+import { Input } from "../input/input";
 
 export const FilterMenu = ({
   el,

@@ -29,7 +29,7 @@ import { Upload } from "./upload";
 import { Calendar } from "./calendar";
 import { Archive } from "./archive";
 import { Eye } from "./eye";
-
+import { Sa } from "./sa";
 const icons = {
   Ads,
   Arrow,
@@ -60,6 +60,7 @@ const icons = {
   Pencil,
   Upload,
   Calendar,
+  Sa,
 };
 export function Icon({
   className,

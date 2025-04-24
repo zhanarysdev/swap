@@ -209,7 +209,7 @@ export default function BusinesId() {
     };
   }, []);
 
-  if (isLoading) return <Spinner />;
+  if (isLoading || cities.isLoading || categories.isLoading) return <Spinner />;
   if (!data) {
     return null;
   }

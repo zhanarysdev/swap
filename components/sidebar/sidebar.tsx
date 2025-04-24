@@ -5,7 +5,7 @@ import { SideBarItem } from "./sidebar-item";
 
 export function SideBar() {
   return (
-    <div className="p-6">
+    <div className="p-6 h-[100vh] overflow-y-auto">
       <Link href="/" className="pl-3 mb-[64px] flex">
         <Icon name="Logo" className="[&>svg]:w-[155px] [&>svg]:h-[35px]" />
       </Link>

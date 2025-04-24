@@ -2,9 +2,9 @@
 import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { ModalDelete } from "@/components/modal/modal-delete";
-import { Table } from "@/components/table/table";
 import { default_context, TableContext } from "@/components/temp/table-provider";
 import { fetcher } from "@/fetcher";
+import Table from '@/components/temp/table'
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
@@ -33,6 +33,7 @@ const labels = [
   {
     key: "created_at",
     title: "Время",
+    date: true,
   },
   {
     key: "recipient_count",
@@ -57,7 +58,6 @@ export default function NotificationsPage() {
       dedupingInterval: 2000
     }
   );
-  console.log(data)
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
@@ -69,16 +69,10 @@ export default function NotificationsPage() {
         ...prev,
         data: data.result.items,
         labels: labels,
-        goTo: "/busines",
-        sort: [
-          "name",
-          "city",
-          "balance",
-          "category",
-          "lastTaskDate",
-          "taskCount",
-        ],
-        filters: ["city", "category"],
+        goTo: "/notifications",
+        sort: [],
+        filters: [],
+        onDelete: (id: string) => setDelete(id),
       }));
     }
   }, [data, setContext]);
@@ -95,12 +89,7 @@ export default function NotificationsPage() {
   return (
     <div>
       <Header subTitle="Информация" title="Уведомления" />
-      <Table
-        data={context.data}
-        labels={labels}
-        goTo="/notifications"
-        onDelete={(id) => setDelete(id)}
-      />
+      <Table/>
       {isDelete &&
         createPortal(
           <ModalDelete

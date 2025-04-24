@@ -315,6 +315,9 @@ export default function AdsIdPage() {
             img={data.result.images[0]}
             close={() => setPreview(false)}
             end_date={data.result.end_date}
+            publication_type={data.result.content_type.format}
+            business_name={data.result.business_name}
+            reward={data.result.rewards.find((r) => r.rank === "platinum").reward}
           />,
           document.getElementById("page-wrapper"),
         )}
