@@ -91,7 +91,7 @@ export default function CitiesPage() {
         onEdit: (id) => {
           setValue(
             "name",
-            data.result.find((el) => el.id === id)?.name.ru as any,
+            data.result.find((el) => el.id === id)?.name as any,
           );
           setOpen(true);
           setEdit(id);

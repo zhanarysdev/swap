@@ -30,7 +30,7 @@ const labels = [
     title: "Название",
   },
   {
-    key: "company_count",
+    key: "business_count",
     title: "Количество компаний",
   },
   {

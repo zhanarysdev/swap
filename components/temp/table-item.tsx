@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Checkbox } from "../checkbox/checkbox";
 import { format } from "date-fns";
+import { Icon } from "../icons";
 
 export const TableItem = ({
   number,
@@ -9,6 +10,7 @@ export const TableItem = ({
   index,
   checked,
   setChecked,
+  draggable,
 }: {
   number?: boolean;
   item: any;
@@ -16,6 +18,7 @@ export const TableItem = ({
   index: number;
   checked: string[];
   setChecked: any;
+  draggable?: boolean;
 }) => {
   if (item.boolean) {
     return el[item.key] ? "Hет" : "Да";
@@ -36,6 +39,10 @@ export const TableItem = ({
 
   if (item.name) {
     return el[item.key]?.name;
+  }
+
+  if(item.key === "id" && draggable) {
+    return <Icon name="Drag" />
   }
 
   if (item.key === "id") {
@@ -155,7 +162,7 @@ export const TableItem = ({
           : ""
       }`}
     >
-      {el[item.key]}
+      {el[item.key] ?? "-"}
     </div>
   );
 };

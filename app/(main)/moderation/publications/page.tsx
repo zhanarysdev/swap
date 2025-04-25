@@ -1,6 +1,6 @@
 "use client";
 import { Header } from "@/components/header/header";
-import { TableContext } from "@/components/temp/table-provider";
+import { default_context, TableContext } from "@/components/temp/table-provider";
 import Table from "@/components/temp/table";
 import { fetcher } from "@/fetcher";
 import { useContext, useEffect } from "react";
@@ -28,11 +28,12 @@ const labels = [
     title: "Срок",
   },
   {
-    key: "category",
+    key: "categories",
     title: "Категория",
+    category: true,
   },
   {
-    key: "contact",
+    key: "display_number",
     title: "Контакт",
   },
 ];
@@ -46,8 +47,8 @@ export default function ModerationPublicationsPage() {
   );
   useEffect(() => {
     if (data?.result?.tasks) {
-      setContext({
-        ...context,
+      setContext(prev => ({
+        ...prev,
         data: data?.result.tasks?.map((el: any) => ({
           ...el,
           deadline: `${new Date(
@@ -60,9 +61,19 @@ export default function ModerationPublicationsPage() {
         filters: ['business_name', 'budget', 'deadline', 'category'],
         labels: labels,
         goTo: "/moderation/publications",
-      });
+      }));
     }
   }, [data]);
+
+  useEffect(() => {
+    setContext((prev) => ({ ...prev, isLoading }));
+  }, [isLoading]);
+
+  useEffect(() => {
+    return () => {
+      setContext(default_context);
+    }
+  }, [])
 
   return (
     <div>

@@ -129,6 +129,7 @@ export default function ContentPage() {
     if (res.statusCode === 200) {
       reset();
       setEdit(null);
+      setOpen(false);
       mutate();
     }
   }

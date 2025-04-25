@@ -20,7 +20,7 @@ const renderContent = (item, el, index, number) => {
   }
 
   if (item.key === "id") {
-    return number ? index + 1 : <Checkbox />;
+    return <Icon name="Drag" />;
   }
 
   return (

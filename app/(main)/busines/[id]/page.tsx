@@ -176,6 +176,7 @@ export default function BusinesId() {
         displayNumber: data.contact,
         id: id,
         instagram: data.instagram,
+        balance: Number(data.balance),
         name: data.name,
         password: "string",
         phoneNumber: data.phoneNumber,

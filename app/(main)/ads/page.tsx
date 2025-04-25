@@ -43,7 +43,7 @@ const labels = [
     rounded: true,
   },
   {
-    key: "ad_type",
+    key: "ad_format",
     title: "Формат",
     rounded: true,
   },
@@ -127,3 +127,4 @@ export default function Ads() {
     </div>
   );
 }
+

@@ -57,7 +57,7 @@ export default function BusinesPage() {
   const { context, setContext } = useContext(TableContext);
   const debouncedSearch = useDebounce(context.search, 500);
 
-  const { data, isLoading, mutate } = useSWR(
+  const { data, isLoading } = useSWR(
     {
       url: `superadmin/v1/businesses/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue ?? ""}${context.filterValue.city ? `&city=${context.filterValue.city}` : ""}${context.filterValue.category ? `&categoryId=${context.filterValue.category}` : ""}`,
       custom: true,

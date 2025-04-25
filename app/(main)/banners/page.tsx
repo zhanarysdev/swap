@@ -88,7 +88,6 @@ export default function BannersPage() {
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
-  console.log({errors, priority: watch("priority")})
 
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
@@ -173,8 +172,9 @@ export default function BannersPage() {
     }
 
     const res = await edit({
-      url: `banner/${isEdit}`,
+      url: `banner/edit`,
       data: {
+        id: isEdit,
         title: data.name,
         city_id: data.city_id,
         link: data.link,

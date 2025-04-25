@@ -30,6 +30,9 @@ import { Calendar } from "./calendar";
 import { Archive } from "./archive";
 import { Eye } from "./eye";
 import { Sa } from "./sa";
+import { Drag } from "./drag";
+import { Faq } from "./faq";
+import { Tv } from "./tv";
 const icons = {
   Ads,
   Arrow,
@@ -61,6 +64,9 @@ const icons = {
   Upload,
   Calendar,
   Sa,
+  Drag,
+  Faq,
+  Tv,
 };
 export function Icon({
   className,

@@ -29,6 +29,7 @@ type SortValue = {
 } | null;
 
 const SortableRow = ({
+  draggable,
   el,
   index,
   labels,
@@ -39,6 +40,7 @@ const SortableRow = ({
   checked,
   setChecked,
 }: {
+  draggable?: boolean;
   el: any;
   index: number;
   labels: any[];
@@ -85,6 +87,7 @@ const SortableRow = ({
           className="text-left border-b border-lightGrey font-semibold text-base leading-5 p-3 py-2"
         >
           <TableItem
+            draggable={draggable}
             number={number}
             item={item}
             el={el}
@@ -286,7 +289,7 @@ export default function Table({
             >
               <div className="flex items-center ">
                 <span className="mr-2">
-                  {title === "ID" && number ? "№" : title}
+                  {title === "ID" && number ? "№" :title}
                 </span>
                 {getSortIcon(key)}
               </div>
@@ -304,6 +307,7 @@ export default function Table({
           ? data.map((el, index) =>
               draggable ? (
                 <SortableRow
+                  draggable={draggable}
                   key={el.id}
                   el={el}
                   index={index}

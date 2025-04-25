@@ -5,7 +5,6 @@ import { InputLink } from "@/components/input/input-link";
 import { Label } from "@/components/input/label";
 import { Modal } from "@/components/modal/modal";
 import { ModalDelete } from "@/components/modal/modal-delete";
-import { ModalSave } from "@/components/modal/modal-save";
 import { Preview } from "@/components/preview/preview";
 import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
@@ -92,9 +91,18 @@ export default function AdsIdPage() {
   const [isOpen, setOpen] = useState(false);
   const [showPreview, setPreview] = useState(false);
 
+  const weekDaysMap: { [key: string]: string } = {
+    'monday': 'Понедельник',
+    'tuesday': 'Вторник',
+    'wednesday': 'Среда',
+    'thursday': 'Четверг',
+    'friday': 'Пятница',
+    'saturday': 'Суббота',
+    'sunday': 'Воскресенье'
+  };
+
   const { data, isLoading, mutate } = useSWR({ url: `tasks/${id}` }, fetcher);
 
-  console.log(data);
   const {
     handleSubmit,
     register,
@@ -108,7 +116,7 @@ export default function AdsIdPage() {
 
   const archive = async () => {
     const res = await post({
-      url: "task/archive",
+      url: `task/archive/${id}`,
       data: { id: data.result.id },
     });
     if (res.result) {
@@ -127,12 +135,12 @@ export default function AdsIdPage() {
         description: data.result.about,
         ad_type: data.result.content_type.format,
         rank_bronze: data.result.rewards.find((r) => r.rank === "bronze")
-          .reward,
+          ?.reward,
         rank_silver: data.result.rewards.find((r) => r.rank === "silver")
-          .reward,
-        rank_gold: data.result.rewards.find((r) => r.rank === "gold").reward,
+          ?.reward,
+        rank_gold: data.result.rewards.find((r) => r.rank === "gold")?.reward,
         rank_platinum: data.result.rewards.find((r) => r.rank === "platinum")
-          .reward,
+          ?.reward,
       });
     }
   }, [data, reset]);
@@ -292,7 +300,7 @@ export default function AdsIdPage() {
                     key={el.week_day}
                     className="flex justify-between bg-[#383838] rounded-2xl py-[9px] items-center px-[25px]"
                   >
-                    <div>{el.week_day}</div>
+                    <div>{weekDaysMap[el.week_day.toLowerCase()] || el.week_day}</div>
                     <div className="flex gap-2 items-center">
                       <div className="bg-[#212121] px-3 py-2 rounded-2xl">
                         {el.open_time}

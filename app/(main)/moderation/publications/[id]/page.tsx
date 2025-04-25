@@ -76,7 +76,7 @@ const schema = y
     start_date: y.string().required("Oбязательное поле"),
     end_date: y.string().required("Oбязательное поле"),
     publication_type: y.string().required("Oбязательное поле"),
-    ad_type: y.string().required("Oбязательное поле"),
+    ad_format: y.string().required("Oбязательное поле"),
   })
   .required();
 type FormData = y.InferType<typeof schema>;
@@ -106,7 +106,11 @@ export default function ModerationPublicationsIdPage() {
       reset({ ...data.result, branch: data.result.branches[0].address, 
         budget: `${data.result.spent_budget} / ${data.result.budget} ₸`,
         influencer_count: data.result.influencer_amount,
-        rank_bronze: data.result.rewards.find(r => r.rank === 'bronze').price, rank_silver: data.result.rewards.find(r => r.rank === 'silver').price, rank_gold: data.result.rewards.find(r => r.rank === 'gold').price, rank_platinum: data.result.rewards.find(r => r.rank === 'platinum').price });
+        rank_bronze: data.result.rewards.find(r => r.rank === 'bronze')?.reward, 
+        rank_silver: data.result.rewards.find(r => r.rank === 'silver')?.reward, 
+        rank_gold: data.result.rewards.find(r => r.rank === 'gold')?.reward, 
+        rank_platinum: data.result.rewards.find(r => r.rank === 'platinum')?.reward 
+      });
     }
   }, [data, reset]);
   const { back } = useRouter();
@@ -223,7 +227,7 @@ export default function ModerationPublicationsIdPage() {
           </div>
           <div className="flex flex-col gap-2">
             <Label label={"Формат"} />
-            <InputLink label={watch("ad_type")} />
+            <InputLink label={watch("ad_format")} />
           </div>
         </div>
         

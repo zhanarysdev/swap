@@ -35,9 +35,10 @@ const labels = [
   {
     key: "rating",
     title: "Рейтинг вовлеченности",
+    rank: true,
   },
   {
-    key: "count",
+    key: "user_count",
     title: "Количество инфлюэнсеров",
   },
 ];
@@ -87,6 +88,7 @@ export default function InfluencersPage() {
     formState: { errors },
     reset,
     setValue,
+    setError,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
   });
@@ -99,7 +101,7 @@ export default function InfluencersPage() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result,
+        data: data.result.map((el) => ({...el, rating: `${el.min_rating} - ${el.max_rating}`})),
         labels: labels,
         control: {
           action: () => setOpen(true),
@@ -108,6 +110,9 @@ export default function InfluencersPage() {
         onDelete: (id) => setDelete(id),
         onEdit: (id) => {
           setValue("name", data.result.find((el) => el.id === id)?.name as any);
+          setValue("tariff", data.result.find((el) => el.id === id)?.price as any);
+          setValue("since", data.result.find((el) => el.id === id)?.min_rating as any);
+          setValue("to", data.result.find((el) => el.id === id)?.max_rating as any);
           setOpen(true);
           setEdit(id);
         },
@@ -131,6 +136,12 @@ export default function InfluencersPage() {
         max_rating: data.to,
       },
     });
+    if(res.result === "min_rating must be less than max_rating" ) {
+      setError("since", { message: "Минимальный рейтинг должен быть меньше максимального" });
+    }
+    if(res.result === "rating range overlaps with existing rank") {
+      setError("root", { message: "Диапазон рейтинга пересекается с существующим" });
+    }
     if (res.statusCode === 200) {
       reset();
       setOpen(false);
@@ -163,6 +174,7 @@ export default function InfluencersPage() {
     mutate();
   }
 
+
   return (
     <div>
       <Header title={"Рейтинг инфлюэнсеров"} subTitle={""} />
@@ -173,7 +185,10 @@ export default function InfluencersPage() {
           <ModalSave
             onSave={handleSubmit(isEdit ? onEdit : save)}
             label={isEdit ? "Изменить" : "Добавить"}
-            close={() => setOpen(false)}
+            close={() => {
+              setOpen(false)
+              reset()
+            }}
           >
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-2">
@@ -190,6 +205,7 @@ export default function InfluencersPage() {
 
               <div className="flex flex-col gap-2">
                 <Label label={"Рейтинг вовлеченности"} />
+                    <FieldError error={errors.root?.message} />
                 <div className="flex gap-2">
                   <div className="flex flex-col gap-2 w-full">
                     <Input placeholder="От" {...register("since")} />

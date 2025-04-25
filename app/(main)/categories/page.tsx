@@ -60,20 +60,12 @@ export default function CategoriesPage() {
     },
     post,
   );
-  const cities = useSWR(
-    {
-      url: "city/count",
-      data: { reuqest: { search: "", sort_by: "", sort_dir: "" } },
-    },
-    post,
-  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    control,
     setValue,
   } = useForm<FormSchemaType>({
     resolver: yupResolver(schema),
@@ -112,7 +104,7 @@ export default function CategoriesPage() {
   }, [data]);
 
   useEffect(() => {
-    setContext(default_context);
+    return () => setContext(default_context);
   }, []);
 
   async function save(data: FormSchemaType) {
@@ -130,7 +122,7 @@ export default function CategoriesPage() {
   async function onEdit(data: FormSchemaType) {
     const res = await edit({
       url: "selection/edit",
-      data: { id: isEdit, name: data.name },
+      data: { id: isEdit, title: data.name },
     }); // Specify the collection and document ID
     if (res.statusCode === 200) {
       reset();
