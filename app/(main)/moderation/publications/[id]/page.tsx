@@ -8,7 +8,7 @@ import { ModalDelete } from "@/components/modal/modal-delete";
 import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
 import { TableContext } from "@/components/temp/table-provider";
-import { fetcher } from "@/fetcher";
+import { fetcher, post } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
@@ -128,10 +128,26 @@ export default function ModerationPublicationsIdPage() {
 
   if (isLoading) return <Spinner />;
 
-  const save = async (data: FormData) => {
-    console.log(data);
-  };
-  const link = watch("instagram")?.split("@");
+  const accept = async () => {
+    const res = await post({ url: `moderation/tasks/${id}/moderate`, data: { status: 'approved' } });
+    if (res.statusCode === 200) {
+      push("/moderation/publications");
+    }
+  }
+  const retry = async () => {
+    const res = await post({ url: `moderation/tasks/${id}/moderate`, data: { status: 'needs_fixes' } });
+    if (res.statusCode === 200) {
+      push("/moderation/publications");
+    }
+  }
+
+  const reject = async () => {
+    const res = await post({ url: `moderation/tasks/${id}/moderate`, data: { status: 'rejected' } });
+    if (res.statusCode === 200) {
+      push("/moderation/publications");
+    }
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-[64px]">
@@ -147,14 +163,17 @@ export default function ModerationPublicationsIdPage() {
           <Button
             bg={ButtonBG.primary}
             label={"Одобрить"}
+            onClick={accept}
           />
           <Button
             bg={ButtonBG.orange}
             label={"Запросить повторно"}
+            onClick={retry}
           />
           <Button
             bg={ButtonBG.red}
             label={"Отклонить"}
+            onClick={reject}
           />
         </div>
       </div>

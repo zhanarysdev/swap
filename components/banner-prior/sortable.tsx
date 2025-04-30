@@ -17,7 +17,8 @@ export const Sortable = ({
   errors, 
   control,
   selectedCheckbox,
-  onCheckboxChange 
+  onCheckboxChange,
+  setValue
 }: { 
   id: string | number;
   name: string;
@@ -26,6 +27,7 @@ export const Sortable = ({
   control: any;
   selectedCheckbox: string | null;
   onCheckboxChange: (name: string) => void;
+  setValue: any;
 }) => {
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -69,7 +71,13 @@ export const Sortable = ({
             />
           </div>
           <div className="w-full">
-            <InputBanner placeholder="Объявление" {...register(name)} />
+            <InputBanner 
+              placeholder="Объявление" 
+              {...register(name)} 
+              onChange={(value) => {
+                setValue(name, value);
+              }}
+            />
             <FieldError error={errors.advertisment?.message} />
           </div>
         </div>
@@ -86,7 +94,7 @@ export const Sortable = ({
           <div className="w-full">
             <Controller
               control={control}
-              name={name}
+              name={'link'}
               render={({ field: { value, onChange } }) => (
                 <Select
                   data={value ? value : "Подборка категорий"}

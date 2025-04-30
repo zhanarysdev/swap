@@ -129,6 +129,28 @@ export const postFile = async ({ url, data, custom = false }) => {
   return res;
 };
 
+export const editFile = async ({ url, data, custom = false }) => {
+  const res = fetch(
+    custom
+      ? `https://swapp-admin-stg-414022925388.us-central1.run.app/api/${url}`
+      : `https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/${url}`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        SuperToken: token,
+      },
+      body: (data),
+    }
+  ).then((response) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  });
+  return res;
+};
+
 export const edit = async ({ url, data, custom = false }) => {
   const res = fetch(
     custom

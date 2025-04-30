@@ -2,7 +2,7 @@ import { ComponentProps, useState } from "react";
 import { Icon } from "../icons";
 
 type InputFileType = Omit<ComponentProps<"input">, 'value' | 'onChange'> & {
-  value?: File | null;
+  value?: File | null ;
   onChange: (file: File) => void;
   placeholder?: string;
 };
@@ -54,10 +54,13 @@ export function InputFile({ value, onChange, placeholder }: InputFileType) {
       />
       <label
         htmlFor="fileInput"
-        className="bg-[#333333] gap-2 cursor-pointer flex w-full placeholder:text-grey rounded-2xl py-[15px] px-[25px] text-base leading-5 font-medium"
+        className="bg-[#333333] gap-2 cursor-pointer flex items-center w-full placeholder:text-grey rounded-2xl py-[15px] px-[25px] text-base leading-5 font-medium"
       >
         {value ? (
-          value.name
+          <div className="flex items-center gap-2 w-full">
+            <Icon name="Image" />
+            <span className="text-white truncate">{value instanceof File ? value.name : value}</span>
+          </div>
         ) : (
           <>
             <Icon name="Upload" />

@@ -81,6 +81,7 @@ export default function BusinesPage() {
         data: data.result.items.map((el) => ({
           ...el,
           socialNetwork: `@${el.socialNetwork}`,
+          taskCount: `${el.visitCount} / ${el.taskCount}`,
         })),
         labels: labels,
         goTo: "/busines",

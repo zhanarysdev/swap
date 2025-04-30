@@ -45,10 +45,12 @@ const labels = [
   {
     key: "startDate",
     title: "Создано",
+    date: true,
   },
   {
     key: "endDate",
     title: "Срок",
+    date: true,
   },
   {
     key: "type",
@@ -63,6 +65,7 @@ const labels = [
   {
     key: "status",
     title: "Статус",
+    status: true,
   },
 ];
 

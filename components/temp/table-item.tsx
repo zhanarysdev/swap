@@ -70,7 +70,7 @@ export const TableItem = ({
     if (el[item.key] === "man" || el[item.key] === "male") {
       return "Мужчина";
     }
-    if (el[item.key] === "female") {
+    if (el[item.key] === "female" || el[item.key] === "woman") {
       return "Женщина";
     }
   }
@@ -109,6 +109,16 @@ export const TableItem = ({
         </div>
       );
     }
+
+    if (el[item.key] === "archive") {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-[8px] h-[8px] rounded-full bg-red"></div>
+          <span>В aрхивe</span>
+        </div>
+      );
+    }
+
     if (el[item.key] === "not_active") {
       return (
         <div className="flex items-center gap-2">

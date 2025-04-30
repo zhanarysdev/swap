@@ -36,6 +36,7 @@ export const BannerPrior = ({ register, errors, control, setValue }: {
         control={control}
         selectedCheckbox={selectedCheckbox}
         onCheckboxChange={handleCheckboxChange}
+        setValue={setValue}
       />
       <Sortable
         id="advertisment"
@@ -45,6 +46,7 @@ export const BannerPrior = ({ register, errors, control, setValue }: {
         control={control}
         selectedCheckbox={selectedCheckbox}
         onCheckboxChange={handleCheckboxChange}
+        setValue={setValue}
       />
       <Sortable
         id="category"
@@ -54,6 +56,7 @@ export const BannerPrior = ({ register, errors, control, setValue }: {
         control={control}
         selectedCheckbox={selectedCheckbox}
         onCheckboxChange={handleCheckboxChange}
+        setValue={setValue}
       />
     </div>
   );

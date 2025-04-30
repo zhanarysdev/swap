@@ -41,16 +41,6 @@ const schema = yup.object().shape({
     then: (schema) => schema.required('Ссылка обязательна'),
     otherwise: (schema) => schema.nullable()
   }),
-  advertisment: yup.string().when('priority', {
-    is: 'advertisment',
-    then: (schema) => schema.required('Объявление обязательно'),
-    otherwise: (schema) => schema.nullable()
-  }),
-  category: yup.string().when('priority', {
-    is: 'category',
-    then: (schema) => schema.required('Категория обязательна'),
-    otherwise: (schema) => schema.nullable()
-  }),
   image: yup.mixed().required('Изображение обязательно')
 });
 
@@ -122,8 +112,7 @@ export default function BannersPage() {
             setValue("city_id", banner.city.id);
             setValue("name", banner.title);
             setValue("link", banner.link);
-            setValue("advertisment", banner.advertisment);
-            setValue("category", banner.category);
+            setValue("image", banner.image_url);
             setOpen(true);
             setEdit(id);
           }
@@ -145,8 +134,6 @@ export default function BannersPage() {
       formData.append("city_id", data.city_id)
       formData.append("priority", "0")
       formData.append("link", data.link)
-      formData.append("advertisment", data.advertisment )
-      formData.append("category", data.category)
 
     if (data.image instanceof File) {
       formData.append("image", data.image);
@@ -167,6 +154,7 @@ export default function BannersPage() {
     formData.append("city_id", data.city_id);
     formData.append("priority", data.priority.toString());
     formData.append("link", data.link);
+
     if (data.image instanceof File) {
       formData.append("image", data.image);
     }
@@ -177,10 +165,8 @@ export default function BannersPage() {
         id: isEdit,
         title: data.name,
         city_id: data.city_id,
-        link: data.link,
-        advertisment: data.advertisment,
-        category: data.category,
-        
+        link: watch("priority") === "category" ? `/categoryID/${data.link}` : watch("priority") === "advertisment" ? `/taskID/${data.link}` :  data.link,
+        image_url: watch("image")
       },
     });
     if (res.statusCode === 200) {
@@ -256,11 +242,13 @@ export default function BannersPage() {
                 <FieldError error={errors.city_id?.message} />
               </div>
 
+
               <div className="flex flex-col gap-2">
                 <Label label="Изображение" />
                 <InputFile
                   placeholder="Перенесите сюда файл"
                   onChange={(file) => setValue("image", file)}
+                  value={watch("image") as any}
                 />
                 <FieldError error={errors.image?.message} />
               </div>
