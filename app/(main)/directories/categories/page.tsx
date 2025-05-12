@@ -65,14 +65,9 @@ export default function DirCategoriesPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `business/category/list`,
-      data: {
-        search: debouncedSearch,
-        sort_by: context.sortValue,
-        sort_dir: "",
-      },
+      url: `categories`,
     },
-    post,
+    fetcher,
   );
 
   useEffect(() => {
@@ -104,14 +99,14 @@ export default function DirCategoriesPage() {
 
   async function save(data: FormSchemaType) {
     const res = await post({
-      url: `business/category/create`,
+      url: `category/create`,
       data: {
         name: data.name,
         company_count: 0,
         influencer_count: 0,
       },
     });
-    if (res.statusCode === 200) {
+    if (res.message === 'success') {
       reset();
       setOpen(false);
       mutate();
@@ -119,11 +114,11 @@ export default function DirCategoriesPage() {
   }
 
   async function onEdit(data: FormSchemaType) {
-    const res = await edit({
-      url: "business/category/edit",
+    const res = await post({
+      url: "category/update",
       data: { id: isEdit, name: data.name },
     }); // Specify the collection and document ID
-    if (res.statusCode === 200) {
+    if (res.message === 'success') {
       reset();
       setEdit(null);
       setOpen(false);
@@ -132,7 +127,7 @@ export default function DirCategoriesPage() {
   }
 
   async function onRemove() {
-    const res = await remove({ url: `business/category/${isDelete}` } as any);
+    const res = await remove({ url: `category/${isDelete}` } as any);
     setDelete(null);
     mutate();
   }

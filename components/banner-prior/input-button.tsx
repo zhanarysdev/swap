@@ -56,6 +56,7 @@ export function InputBanner({ add, onChange, ...props }: InputButtonProps) {
       setSelectedId(prev => prev === id ? null : id);
     }
   });
+  console.log('--->',selectedId)
 
   const { data, isLoading } = useSWR(
     {

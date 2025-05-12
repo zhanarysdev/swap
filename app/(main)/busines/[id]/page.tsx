@@ -112,7 +112,7 @@ export default function BusinesId() {
   );
   const categories = useSWR(
     {
-      url: "business/category/list",
+      url: "category/list",
       data: {
         search: "",
         sort_by: "",
