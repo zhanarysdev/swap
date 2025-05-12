@@ -128,12 +128,19 @@ export default function BannersPage() {
   }, []);
 
   async function save(data: FormSchemaType) {
-
+    let link;
+    if(data.priority === 'category'){
+      link = `/categoryDetail/${data.link}`
+    }else if(data.priority === 'advertisment'){
+      link = `/taskDetail/${data.link}`
+    }else{
+      link = `https://${data.link}`
+    }
       const formData = new FormData();
       formData.append("title", data.name)
       formData.append("city_id", data.city_id)
       formData.append("priority", "0")
-      formData.append("link", data.link)
+      formData.append("link",  data.link)
 
     if (data.image instanceof File) {
       formData.append("image", data.image);
