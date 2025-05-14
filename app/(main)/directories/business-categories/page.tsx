@@ -65,9 +65,15 @@ export default function DirCategoriesPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `categories`,
+      url: `v1/business/category/list/all`,
+      data: {
+        "search": context.search,
+        "sort_by": "name",
+        "sort_dir": "asc"
+      },
+      custom: true,
     },
-    fetcher,
+    post,
   );
 
   useEffect(() => {
@@ -99,14 +105,15 @@ export default function DirCategoriesPage() {
 
   async function save(data: FormSchemaType) {
     const res = await post({
-      url: `category/create`,
+      url: `v1/business/category/create`,
+      custom: true,
       data: {
         name: data.name,
         company_count: 0,
         influencer_count: 0,
       },
     });
-    if (res.message === 'success') {
+    if (res.result === 'success') {
       reset();
       setOpen(false);
       mutate();
@@ -114,11 +121,12 @@ export default function DirCategoriesPage() {
   }
 
   async function onEdit(data: FormSchemaType) {
-    const res = await post({
-      url: "category/update",
+    const res = await edit({
+      url: `v1/business/category/edit`,
+      custom: true,
       data: { id: isEdit, name: data.name },
     }); // Specify the collection and document ID
-    if (res.message === 'success') {
+    if (res.result === 'success') {
       reset();
       setEdit(null);
       setOpen(false);
@@ -127,14 +135,14 @@ export default function DirCategoriesPage() {
   }
 
   async function onRemove() {
-    const res = await remove({ url: `category/${isDelete}` } as any);
+    const res = await remove({ url: `v1/business/category/${isDelete}`, custom: true } as any);
     setDelete(null);
     mutate();
   }
 
   return (
     <div>
-      <Header title={"Категории инфлюенсеров"} subTitle={""} />
+      <Header title={"Категории бизнеса"} subTitle={""} />
       <Table />
 
       {(isOpen || isEdit) &&

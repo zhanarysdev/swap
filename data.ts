@@ -55,8 +55,12 @@ export const sideBarMenu = [
     icon: "Directories",
     submenu: [
       {
-        label: "Категория бизнеса инфл...",
+        label: "Категория инфлюенсера",
         href: "/directories/categories",
+      },
+      {
+        label: "Категория бизнеса",
+        href: "/directories/business-categories",
       },
       {
         label: "Города",

@@ -97,7 +97,7 @@ export default function BusinesId() {
   const [isEdit, setEdit] = useState(false);
   const { data, isLoading, mutate } = useSWR(
     { url: `superadmin/v1/business/${id}`, custom: true },
-    fetcher,
+    fetcher
   );
   const cities = useSWR(
     {
@@ -108,19 +108,15 @@ export default function BusinesId() {
         sort_dir: "asc",
       },
     },
-    post,
+    post
   );
   const categories = useSWR(
     {
-      url: "category/list",
-      data: {
-        search: "",
-        sort_by: "",
-        sort_dir: "asc",
-      },
+      url: "categories",
     },
-    post,
+    fetcher
   );
+  console.log("categories", categories);
 
   const [isOpen, setOpen] = useState(false);
 
@@ -463,7 +459,7 @@ export default function BusinesId() {
               <AddButton onClick={() => filials.append("")} />
             </div>
           </Modal>,
-          document.getElementById("page-wrapper"),
+          document.getElementById("page-wrapper")
         )}
       {isDelete &&
         createPortal(
@@ -472,7 +468,7 @@ export default function BusinesId() {
             close={() => setDelete(false)}
             onDelete={onRemove}
           />,
-          document.getElementById("page-wrapper"),
+          document.getElementById("page-wrapper")
         )}
     </div>
   );
