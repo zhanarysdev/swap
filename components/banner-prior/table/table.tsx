@@ -30,7 +30,7 @@ export function Table({data, labels, checked, setChecked}) {
         <tbody>
           {data.length
             ? data.map((el, index) =>
-              <tr>
+              <tr key={index}>
                 {labels.map((item) => (
                   <td
                     key={item.key}
