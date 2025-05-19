@@ -62,7 +62,7 @@ export const Select = ({
       </div>
 
       {!disabled && isOpen && (
-        <div className="absolute flex flex-col gap-4 z-10 styled-select bg-[#333333] w-full rounded-tl-none rounded-tr-none rounded-2xl px-[13px] pb-4">
+        <div className="absolute max-h-[300px] overflow-y-auto flex flex-col gap-4 z-10 styled-select bg-[#333333] w-full rounded-tl-none rounded-tr-none rounded-2xl px-[13px] pb-4">
           {options.map(({ value, label }) => (
             <div
               key={value}

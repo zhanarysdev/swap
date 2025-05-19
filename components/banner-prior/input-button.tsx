@@ -1,10 +1,10 @@
-import { ComponentProps, use, useState } from "react";
-import { Icon } from "../icons";
+import { ComponentProps,  useState } from "react";
 import { Button } from "../button/button";
 import { Modal } from "../modal/modal";
 import { createPortal } from "react-dom";
 import { Table } from "./table/table";
-import { default_context, TableContext } from "../temp/table-provider";
+import { TableContext } from "./table/table-provider";
+import { default_context } from "../temp/table-provider";
 import { useContext, useEffect } from "react";
 import { fetcher } from "@/fetcher";
 import useSWR from "swr";
@@ -55,6 +55,12 @@ export function InputBanner({ add, onChange, ...props }: InputButtonProps) {
       }));
     }
   }, [data]);
+
+  useEffect(() => {
+    return () => {
+      setContext(default_context);
+    }
+  }, []);
 
 
 

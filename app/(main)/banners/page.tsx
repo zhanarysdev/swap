@@ -41,6 +41,11 @@ const schema = yup.object().shape({
     then: (schema) => schema.required('Ссылка обязательна'),
     otherwise: (schema) => schema.nullable()
   }),
+  advertisment: yup.string().when('priority', {
+    is: 'advertisment',
+    then: (schema) => schema.required('Ссылка обязательна'),
+    otherwise: (schema) => schema.nullable()
+  }),
   image: yup.mixed().required('Изображение обязательно')
 });
 
@@ -109,13 +114,33 @@ export default function BannersPage() {
         onEdit: (id) => {
           const banner = data.result.find((el) => el.id === id);
           if (banner) {
+            console.log(banner)
+            if(banner.link.includes('category')){
+              setValue("priority", "category");
+              setValue("link", banner.link.split('categoryDetail/')[1]);
+            }else if(banner.link.includes('taskDetail')){
+              setValue("priority", "advertisment");
+              setValue("advertisment", banner.link.split('taskDetail/')[1]);
+            }else{
+              setValue("priority", "link");
+              setValue("link", banner.link);
+            }
             setValue("city_id", banner.city.id);
             setValue("name", banner.title);
-            setValue("link", banner.link);
             setValue("image", banner.image_url);
             setOpen(true);
             setEdit(id);
           }
+        },
+      }));
+    } else {
+      setContext((prev) => ({
+        ...prev,
+        data: [],
+
+        control: {
+          action: () => setOpen(true),
+          label: "Добавить",
         },
       }));
     }
@@ -132,7 +157,7 @@ export default function BannersPage() {
     if(data.priority === 'category'){
       link = `/categoryDetail/${data.link}`
     }else if(data.priority === 'advertisment'){
-      link = `/taskDetail/${data.link}`
+      link = `/taskDetail/${data.advertisment}`
     }else{
       link = `https://${data.link}`
     }
@@ -140,7 +165,7 @@ export default function BannersPage() {
       formData.append("title", data.name)
       formData.append("city_id", data.city_id)
       formData.append("priority", "0")
-      formData.append("link",  data.link)
+      formData.append("link",  link)
 
     if (data.image instanceof File) {
       formData.append("image", data.image);
@@ -262,6 +287,7 @@ export default function BannersPage() {
               <div className="flex flex-col gap-2">
                 <Label label="Приоритетность" />
                 <BannerPrior
+                  getValues={watch}
                   register={register}
                   errors={errors}
                   control={control}

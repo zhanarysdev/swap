@@ -75,7 +75,7 @@ export const Sortable = ({
               placeholder="Объявление" 
               {...register(name)} 
               onChange={(value) => {
-                setValue('link', value);
+                setValue('advertisment', value);
               }}
             />
             <FieldError error={errors.advertisment?.message} />

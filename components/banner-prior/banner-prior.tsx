@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Control,
   FieldErrors,
   FieldValues,
+  UseFormGetValues,
   UseFormRegister,
   UseFormSetValue,
 } from "react-hook-form";
 import { Sortable } from "./sortable";
 
-export const BannerPrior = ({ register, errors, control, setValue }: { 
+export const BannerPrior = ({ register, errors, control, setValue, getValues }: { 
   register: UseFormRegister<FieldValues>;
   errors: FieldErrors<FieldValues>;
   control: Control<FieldValues>;
   setValue: UseFormSetValue<FieldValues>;
+  getValues: UseFormGetValues<FieldValues>;
 }) => {
   const [selectedCheckbox, setSelectedCheckbox] = useState<string | null>(null);
 
@@ -25,6 +27,16 @@ export const BannerPrior = ({ register, errors, control, setValue }: {
       setValue('priority', name);
     }
   };
+  useEffect(() => {
+    if(getValues('priority') === 'link'){
+      setSelectedCheckbox('link');
+    }else if(getValues('priority') === 'advertisment'){
+      setSelectedCheckbox('advertisment');
+    }else if(getValues('priority') === 'category'){
+      setSelectedCheckbox('category');
+    }
+  }, [getValues])
+
 
   return (
     <div className="flex flex-col gap-4">
