@@ -93,6 +93,8 @@ type FormData = y.InferType<typeof schema>;
 export default function ModerationPage() {
   const [isOpen, setOpen] = useState(false);
 
+  const [isSending, setSending] = useState(false);
+
   const { context, setContext } = useContext(TableContext);
   const debouncedSearch = useDebounce(context.search, 500);
 
@@ -124,6 +126,7 @@ export default function ModerationPage() {
   useEffect(() => {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
+
 
   useEffect(() => {
     if (data?.result) {
@@ -172,6 +175,7 @@ export default function ModerationPage() {
         control: {
           label: "Отправить уведомление",
           action: () => setOpen(true),
+          disabled: "checked",
         },
       }));
     }
@@ -190,6 +194,7 @@ export default function ModerationPage() {
     control,
     formState: { errors },
     setError,
+    reset,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -221,6 +226,7 @@ export default function ModerationPage() {
       notificationFormData.append("navigate", data.link || "");
       notificationFormData.append("link", data.link || "");
       notificationFormData.append("image", data.photo);
+      setSending(true);
 
       const res = await postFile({
         url: "notification/send",
@@ -228,6 +234,7 @@ export default function ModerationPage() {
       });
       if (res.result) {
         setOpen(false);
+        setSending(false);
       }
     } catch (error) {
       console.error("Error updating influencers:", error);
@@ -242,8 +249,12 @@ export default function ModerationPage() {
         createPortal(
           <ModalSave
             onSave={handleSubmit(save)}
+            disabled={isSending}
             label={"Отправка уведомления"}
-            close={() => setOpen(false)}
+            close={() => {
+              setOpen(false);
+              reset();
+            }}
             buttonLabel="Отправить"
           >
             <div className="flex flex-col gap-4">

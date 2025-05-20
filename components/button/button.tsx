@@ -22,6 +22,7 @@ export function Button({
   type,
   preIcon,
   styles,
+  disabled = false,
 }: {
   label: string;
   bg?: ButtonBG;
@@ -29,6 +30,7 @@ export function Button({
   type?: "submit" | "button";
   preIcon?: ReactNode;
   styles?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -42,6 +44,7 @@ export function Button({
         backgroundColor:
           ButtonBGValues[ButtonBG[bg] as keyof typeof ButtonBGValues],
       }}
+      disabled={disabled}
     >
       {preIcon}
       <span>{label}</span>

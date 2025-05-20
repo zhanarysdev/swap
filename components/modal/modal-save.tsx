@@ -8,12 +8,14 @@ export const ModalSave = ({
   close,
   onSave,
   buttonLabel = "Сохранить",
+  disabled = false,
 }: {
   children: ReactNode;
   label: string;
   close: () => void;
   onSave?: () => void;
   buttonLabel?: string;
+  disabled?: boolean;
 }) => {
   return (
     <div className="absolute top-0 left-0 bottom-0 right-0 flex justify-center items-center backdrop-blur-sm bg-[rgba(0,0,0,0.2)]">
@@ -31,6 +33,7 @@ export const ModalSave = ({
           styles="w-full justify-center"
           label={buttonLabel}
           bg={ButtonBG.primary}
+          disabled={disabled}
         />
       </form>
     </div>

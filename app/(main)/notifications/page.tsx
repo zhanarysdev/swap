@@ -42,7 +42,6 @@ const labels = [
 ];
 
 export default function NotificationsPage() {
-  const [isDelete, setDelete] = useState<null | string>(null);
 
   const { context, setContext } = useContext(TableContext);
   const debouncedSearch = useDebounce(context.search, 500);
@@ -72,7 +71,6 @@ export default function NotificationsPage() {
         goTo: "/notifications",
         sort: [],
         filters: [],
-        onDelete: (id: string) => setDelete(id),
       }));
     }
   }, [data, setContext]);
@@ -82,23 +80,11 @@ export default function NotificationsPage() {
       setContext(default_context);
     };
   }, []);
-  const remove = () => {
-    console.log("asld");
-  };
 
   return (
     <div>
       <Header subTitle="Информация" title="Уведомления" />
       <Table/>
-      {isDelete &&
-        createPortal(
-          <ModalDelete
-            label={"Удалить уведомление"}
-            close={() => setDelete(null)}
-            onDelete={remove}
-          />,
-          document.getElementById("page-wrapper")
-        )}
     </div>
   );
 }
