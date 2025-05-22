@@ -79,11 +79,25 @@ export default function Ads() {
     if (data?.result) {
       setContext((prev) => ({
         ...prev,
-        data: data.result.tasks.map((el) => ({...el, budget: `${el.spent_budget} / ${el.total_budget}`, deadline: `${ new Date(el.start_date).toLocaleDateString()} - ${new Date(el.end_date).toLocaleDateString()}`})),
+        data: data.result.tasks.map((el) => ({
+          ...el,
+          budget: `${el.spent_budget} / ${el.total_budget}`,
+          deadline: `${new Date(
+            el.start_date
+          ).toLocaleDateString()} - ${new Date(
+            el.end_date
+          ).toLocaleDateString()}`,
+        })),
         labels: labels,
         goTo: "/ads",
         sort: ["status", "ad_format", "publication_type"],
-        filters:  ["business_name", "deadline", "ad_type", "publication_type", "status"]
+        filters: [
+          "business_name",
+          "deadline",
+          "ad_type",
+          "publication_type",
+          "status",
+        ],
       }));
     }
   }, [data]);
@@ -94,12 +108,15 @@ export default function Ads() {
     };
   }, []);
 
-  const {register, handleSubmit} = useForm()
+  const { register, handleSubmit } = useForm();
 
   const onSave = async (data: any) => {
-    const res = await post({url: "selection/create", data: {title: data.name, task_ids: context.checked}})
-    if(res.result ==='success') {
-      setOpen(false)
+    const res = await post({
+      url: "selection/create",
+      data: { title: data.name, task_ids: context.checked },
+    });
+    if (res.result === "success") {
+      setOpen(false);
     }
   };
 
@@ -116,15 +133,18 @@ export default function Ads() {
         />
       </div>
       <Table />
-      {
-        open && <ModalSave label={"Создать подборку"} onSave={handleSubmit(onSave)} close={() => setOpen(false)}>
+      {open && (
+        <ModalSave
+          label={"Создать подборку"}
+          onSave={handleSubmit(onSave)}
+          close={() => setOpen(false)}
+        >
           <div className="flex flex-col gap-2">
-            <Label label="Название"/>
+            <Label label="Название" />
             <Input placeholder="Название" {...register("name")} />
           </div>
         </ModalSave>
-      }
+      )}
     </div>
   );
 }
-

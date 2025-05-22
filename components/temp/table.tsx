@@ -215,7 +215,7 @@ export default function Table({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    })
   );
 
   const handleSort = (key: string) => {
@@ -284,12 +284,14 @@ export default function Table({
           {labels.map(({ title, key }, index) => (
             <th
               key={`${key} - ${index}`}
-              className={`text-[#AAAAAA] first-of-type:w-[44px] first-of-type:h-[44px] border-b border-lightGrey font-semibold text-base leading-5 p-3 text-left ${sort?.includes(key) ? "cursor-pointer" : ""}`}
+              className={`text-[#AAAAAA] first-of-type:w-[44px] first-of-type:h-[44px] border-b border-lightGrey font-semibold text-base leading-5 p-3 text-left ${
+                sort?.includes(key) ? "cursor-pointer" : ""
+              }`}
               onClick={() => handleSort(key)}
             >
               <div className="flex items-center ">
                 <span className="mr-2">
-                  {title === "ID" && number ? "№" :title}
+                  {title === "ID" && number ? "№" : title}
                 </span>
                 {getSortIcon(key)}
               </div>
@@ -332,7 +334,7 @@ export default function Table({
                   checked={checked}
                   setChecked={setContext}
                 />
-              ),
+              )
             )
           : null}
       </tbody>

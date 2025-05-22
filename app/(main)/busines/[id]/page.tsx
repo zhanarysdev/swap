@@ -159,6 +159,7 @@ export default function BusinesId() {
       custom: true,
     });
     setDelete(null);
+    setContext(default_context);
     push("/busines");
   }
 
@@ -221,7 +222,10 @@ export default function BusinesId() {
             preIcon={<Icon name="Caret" />}
             bg={ButtonBG.grey}
             label={"Назад"}
-            onClick={() => push("/busines")}
+            onClick={() => {
+              setContext(default_context);
+              push("/busines");
+            }}
           />
         </div>
         <div className="flex items-center gap-4">

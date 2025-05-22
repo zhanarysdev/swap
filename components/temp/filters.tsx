@@ -9,7 +9,7 @@ import { TableContext } from "./table-provider";
 export function Filters() {
   const [isFilter, setFilter] = useState(false);
   const {
-    context: { filters, control,  labels, checked },
+    context: { filters, control, labels, checked },
     setContext,
   } = useContext(TableContext);
   return (
@@ -35,8 +35,16 @@ export function Filters() {
           <Button
             bg={ButtonBG.primary}
             label={control.label}
-            disabled={control.disabled === "checked" ? checked.length == 0 : false}
-            styles={control.disabled === "checked" ? checked.length == 0 ? "opacity-50 font-bold" : "font-bold" : "font-bold"}
+            disabled={
+              control.disabled === "checked" ? checked.length == 0 : false
+            }
+            styles={
+              control.disabled === "checked"
+                ? checked.length == 0
+                  ? "opacity-50 font-bold"
+                  : "font-bold"
+                : "font-bold"
+            }
             onClick={control.action}
           />
         )}
