@@ -71,11 +71,10 @@ const schema = y
     // Notification fields
     label: y.string().required("Oбязательное поле"),
     text: y.string().max(300).required("Oбязательное поле"),
-    link: y.string().required("Oбязательное поле"),
+    link: y.string().optional(),
     photo: y
       .mixed<File>()
-      .test("is-file", "Oбязательное поле", (value) => value instanceof File)
-      .required("Oбязательное поле"),
+      .optional(),
     // Influencer fields
     age: y.string().optional(),
     category_ids: y.array().of(y.string()).optional(),
@@ -104,7 +103,8 @@ export default function ModerationPage() {
       data: {
         page: 1,
         search: debouncedSearch,
-        sortBy: context.sortValue,
+        sort_by: context.sortValue?.key,
+        sort_direction: context.sortValue?.direction,
         category_id: context.filterValue.category,
         city_id: context.filterValue.city,
         gender: context.filterValue.gender,
@@ -171,6 +171,7 @@ export default function ModerationPage() {
         labels: labels,
         goTo: "/influencers",
         sort: sort,
+        sortByTwoDirection: true,
         filters: ["city", "category", "gender", "rank"],
         control: {
           label: "Отправить уведомление",
@@ -235,6 +236,7 @@ export default function ModerationPage() {
       if (res.result) {
         setOpen(false);
         setSending(false);
+        reset();
       }
     } catch (error) {
       console.error("Error updating influencers:", error);

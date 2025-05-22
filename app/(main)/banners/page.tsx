@@ -8,6 +8,7 @@ import { InputFile } from "@/components/input/input-file";
 import { Label } from "@/components/input/label";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { ModalSave } from "@/components/modal/modal-save";
+import { MultiSelect } from "@/components/select/multi-select";
 import { Select } from "@/components/select/select";
 import { Spinner } from "@/components/spinner/spinner";
 import Table from "@/components/temp/table";
@@ -34,7 +35,7 @@ const labels = [
 
 const schema = yup.object().shape({
   name: yup.string().required('Название обязательно'),
-  city_id: yup.string().required('Город обязателен'),
+  city_id: yup.array().of(yup.string()).required('Город обязателен'),
   priority: yup.string().required('Приоритет обязателен'),
   link: yup.string().when('priority', {
     is: 'link',
@@ -100,7 +101,7 @@ export default function BannersPage() {
         ...prev,
         data: data?.result.map((el) => ({
           ...el,
-          city: el.city.name.ru,
+          city: el.cities.map((el) => el.name.ru).join(', '),
           order: el.priority,
           status: el.is_active ? "active" : "not_active",
           link: el.link,
@@ -153,6 +154,7 @@ export default function BannersPage() {
   }, []);
 
   async function save(data: FormSchemaType) {
+    console.log(data)
     let link;
     if(data.priority === 'category'){
       link = `/categoryDetail/${data.link}`
@@ -163,7 +165,7 @@ export default function BannersPage() {
     }
       const formData = new FormData();
       formData.append("title", data.name)
-      formData.append("city_id", data.city_id)
+      formData.append("city_ids", data.city_id.join(','))
       formData.append("priority", "0")
       formData.append("link",  link)
 
@@ -183,7 +185,7 @@ export default function BannersPage() {
 
   async function onEdit(data: FormSchemaType) {
     const formData = new FormData();
-    formData.append("city_id", data.city_id);
+    formData.append("city_ids", data.city_id.join(','));
     formData.append("priority", data.priority.toString());
     formData.append("link", data.link);
 
@@ -196,7 +198,7 @@ export default function BannersPage() {
       data: {
         id: isEdit,
         title: data.name,
-        city_id: data.city_id,
+        city_id: data.city_id.join(','),
         link: watch("priority") === "category" ? `/categoryID/${data.link}` : watch("priority") === "advertisment" ? `/taskID/${data.link}` :  data.link,
         image_url: watch("image")
       },
@@ -261,12 +263,12 @@ export default function BannersPage() {
                   control={control}
                   name="city_id"
                   render={({ field }) => (
-                    <Select
+                    <MultiSelect
                       options={cities.data?.result.map((el) => ({
                         value: el.id,
                         label: el.name,
                       }))}
-                      data={field.value ?  field.value : "Город"}
+                      data={field.value ?  field.value : []}
                       onChange={field.onChange}
                     />
                   )}

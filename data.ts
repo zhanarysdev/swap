@@ -30,7 +30,7 @@ export const sideBarMenu = [
     icon: "Image",
   },
   {
-    label: "Подборки категорий",
+    label: "Подборки объявлений",
     href: "/categories",
     icon: "Category",
   },
