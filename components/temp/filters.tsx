@@ -33,7 +33,7 @@ export function Filters() {
       <div>
         {control && (
           <Button
-            bg={ButtonBG.primary}
+            bg={control.buttonBG || ButtonBG.primary}
             label={control.label}
             disabled={
               control.disabled === "checked" ? checked.length == 0 : false
@@ -45,7 +45,7 @@ export function Filters() {
                   : "font-bold"
                 : "font-bold"
             }
-            onClick={control.action}
+            onClick={() => control.action(checked)}
           />
         )}
       </div>

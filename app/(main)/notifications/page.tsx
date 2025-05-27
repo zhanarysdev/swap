@@ -3,11 +3,12 @@ import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { default_context, TableContext } from "@/components/temp/table-provider";
-import { fetcher } from "@/fetcher";
+import { fetcher, remove } from "@/fetcher";
 import Table from '@/components/temp/table'
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
+import { ButtonBG } from "@/components/button/button";
 
 const labels = [
   {
@@ -48,7 +49,7 @@ export default function NotificationsPage() {
 
   const { data, isLoading, mutate } = useSWR(
     {
-      url: `notification/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue }`,
+      url: `notification/list?page=1&search=${debouncedSearch}&sortBy=${context.sortValue}`,
     },
     fetcher,
     {
@@ -62,6 +63,43 @@ export default function NotificationsPage() {
     setContext((prev) => ({ ...prev, isLoading }));
   }, [isLoading]);
 
+
+  const deleteMultiple = async (ids: string[]) => {
+    if (!ids || ids.length === 0) {
+      console.error('No notifications selected for deletion');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/notification', {
+        method: 'DELETE',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'SuperToken': localStorage.getItem('token') || ''
+        },
+        body: JSON.stringify({
+          ids: ids
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete notifications');
+      }
+
+      // Refresh the data after successful deletion
+      await mutate();
+
+      // Clear checked items
+      setContext(prev => ({
+        ...prev,
+        checked: []
+      }));
+    } catch (error) {
+      console.error('Error deleting notifications:', error);
+    }
+  }
+
   useEffect(() => {
     if (data?.result) {
       setContext((prev) => ({
@@ -71,6 +109,12 @@ export default function NotificationsPage() {
         goTo: "/notifications",
         sort: [],
         filters: [],
+        control: {
+          label: "Удалить",
+          buttonBG: ButtonBG.red,
+          disabled: "checked",
+          action: (ids) => deleteMultiple(ids)
+        }
       }));
     }
   }, [data, setContext]);
@@ -84,7 +128,7 @@ export default function NotificationsPage() {
   return (
     <div>
       <Header subTitle="Информация" title="Уведомления" />
-      <Table/>
+      <Table />
     </div>
   );
 }
