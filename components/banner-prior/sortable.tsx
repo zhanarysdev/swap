@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useSortable } from "@dnd-kit/sortable";
 import { Controller } from "react-hook-form";
 import { FieldError } from "../input/field-error";
@@ -10,16 +10,16 @@ import { post } from "@/fetcher";
 import useSWR from "swr";
 import { useEffect, useState } from "react";
 
-export const Sortable = ({ 
-  id, 
-  name, 
-  register, 
-  errors, 
+export const Sortable = ({
+  id,
+  name,
+  register,
+  errors,
   control,
   selectedCheckbox,
   onCheckboxChange,
-  setValue
-}: { 
+  setValue,
+}: {
   id: string | number;
   name: string;
   register: any;
@@ -36,8 +36,9 @@ export const Sortable = ({
       url: `selection/list`,
       data: { request: { search: "", sort_by: "", sort_dir: "" } },
     },
-    post,
+    post
   );
+  console.log("00000", data);
   useEffect(() => {
     if (data?.result) {
       setCategories(data.result);
@@ -49,8 +50,8 @@ export const Sortable = ({
       {name === "link" && (
         <div className="flex gap-2 items-center">
           <div className="w-[54px] h-[54px] rounded-2xl bg-lightGrey grow-0 shrink-0 items-center justify-center flex">
-            <Checkbox 
-              styles="!w-auto !pl-[17px] !mb-[17px]" 
+            <Checkbox
+              styles="!w-auto !pl-[17px] !mb-[17px]"
               checked={selectedCheckbox === "link"}
               onChange={() => onCheckboxChange("link")}
             />
@@ -64,18 +65,18 @@ export const Sortable = ({
       {name === "advertisment" && (
         <div className="flex gap-2 items-center">
           <div className="w-[54px] h-[54px] rounded-2xl bg-lightGrey grow-0 shrink-0 items-center justify-center flex">
-            <Checkbox 
-              styles="!w-auto !pl-[17px] !mb-[17px]" 
+            <Checkbox
+              styles="!w-auto !pl-[17px] !mb-[17px]"
               checked={selectedCheckbox === "advertisment"}
               onChange={() => onCheckboxChange("advertisment")}
             />
           </div>
           <div className="w-full">
-            <InputBanner 
-              placeholder="Объявление" 
-              {...register(name)} 
+            <InputBanner
+              placeholder="Объявление"
+              {...register(name)}
               onChange={(value) => {
-                setValue('advertisment', value);
+                setValue("advertisment", value);
               }}
             />
             <FieldError error={errors.advertisment?.message} />
@@ -85,8 +86,8 @@ export const Sortable = ({
       {name === "category" && (
         <div className="flex gap-2 items-center">
           <div className="w-[54px] h-[54px] rounded-2xl bg-lightGrey grow-0 shrink-0 items-center justify-center flex">
-            <Checkbox 
-              styles="!w-auto !pl-[17px] !mb-[17px]" 
+            <Checkbox
+              styles="!w-auto !pl-[17px] !mb-[17px]"
               checked={selectedCheckbox === "category"}
               onChange={() => onCheckboxChange("category")}
             />
@@ -94,12 +95,15 @@ export const Sortable = ({
           <div className="w-full">
             <Controller
               control={control}
-              name={'link'}
+              name={"link"}
               render={({ field: { value, onChange } }) => (
                 <Select
                   data={value ? value : "Подборка категорий"}
                   onChange={onChange}
-                  options={categories.map((el) => ({ value: el.id, label: el.title }))}
+                  options={categories.map((el) => ({
+                    value: el.id,
+                    label: el.title,
+                  }))}
                 />
               )}
             />

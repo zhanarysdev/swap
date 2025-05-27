@@ -1,4 +1,5 @@
 "use client";
+import { BannerPrior } from "@/components/banner-prior/banner-prior";
 import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { FieldError } from "@/components/input/field-error";
@@ -19,6 +20,7 @@ import { createPortal } from "react-dom";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import * as y from "yup";
+import { InfluencersPrior } from "@/components/influencers-prior/influencers-prior";
 
 const labels = [
   {
@@ -84,6 +86,8 @@ const schema = y
     instagram: y.string().optional(),
     number: y.string().optional(),
     restricted_ad: y.boolean().optional(),
+    priority: y.string().optional(),
+    advertisment: y.string().optional(),
   })
   .required();
 
@@ -134,39 +138,39 @@ export default function ModerationPage() {
         ...prev,
         data: data.result.items
           ? data.result.items.map((el) => ({
-              ...el,
-              category: el.categories,
-              rank: el.rank,
-              advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
-              age: el.birthday
-                ? (() => {
-                    try {
-                      let date;
-                      if (el.birthday.includes(".")) {
-                        // Handle "DD.MM.YYYY" format
-                        const [day, month, year] = el.birthday.split(".");
-                        date = new Date(
-                          parseInt(year),
-                          parseInt(month) - 1,
-                          parseInt(day),
-                        );
-                      } else {
-                        // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
-                        date = new Date(el.birthday.split(" ")[0]);
-                      }
+            ...el,
+            category: el.categories,
+            rank: el.rank,
+            advertisment: `${el.completed_visit_count} / ${el.cancelled_visit_count}`,
+            age: el.birthday
+              ? (() => {
+                try {
+                  let date;
+                  if (el.birthday.includes(".")) {
+                    // Handle "DD.MM.YYYY" format
+                    const [day, month, year] = el.birthday.split(".");
+                    date = new Date(
+                      parseInt(year),
+                      parseInt(month) - 1,
+                      parseInt(day),
+                    );
+                  } else {
+                    // Handle "YYYY-MM-DD HH:mm:ss.SSS" format
+                    date = new Date(el.birthday.split(" ")[0]);
+                  }
 
-                      if (isNaN(date.getTime())) {
-                        return "";
-                      }
+                  if (isNaN(date.getTime())) {
+                    return "";
+                  }
 
-                      const age = new Date().getFullYear() - date.getFullYear();
-                      return age > 0 ? age : "";
-                    } catch (error) {
-                      return "";
-                    }
-                  })()
-                : "",
-            }))
+                  const age = new Date().getFullYear() - date.getFullYear();
+                  return age > 0 ? age : "";
+                } catch (error) {
+                  return "";
+                }
+              })()
+              : "",
+          }))
           : [],
         labels: labels,
         goTo: "/influencers",
@@ -196,6 +200,7 @@ export default function ModerationPage() {
     formState: { errors },
     setError,
     reset,
+    setValue,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -210,6 +215,7 @@ export default function ModerationPage() {
       instagram: "",
       number: "",
       restricted_ad: false,
+      priority: "",
     },
   });
 
@@ -224,8 +230,17 @@ export default function ModerationPage() {
       notificationFormData.append("user_ids", context.checked.join(","));
       notificationFormData.append("message", data.text || "");
       notificationFormData.append("from", data.label || "");
-      notificationFormData.append("navigate", data.link || "");
-      notificationFormData.append("link", data.link || "");
+
+      let link;
+      if (data.priority === "category") {
+        link = `/categoryDetail/${data.link}`;
+      } else if (data.priority === "advertisment") {
+        link = `/taskDetail/${data.advertisment}`;
+      } else {
+        link = `https://${data.link}`;
+      }
+
+      notificationFormData.append("link", link);
       notificationFormData.append("image", data.photo);
       setSending(true);
 
@@ -278,9 +293,14 @@ export default function ModerationPage() {
                 <FieldError error={errors.text?.message} />
               </div>
               <div className="flex flex-col gap-2">
-                <Label label={"Ссылка"} />
-                <Input placeholder="Ссылка" {...register("link")} />
-                <FieldError error={errors.link?.message} />
+                <Label label="Приоритетность" />
+                <InfluencersPrior
+                  getValues={watch}
+                  register={register}
+                  errors={errors}
+                  control={control}
+                  setValue={setValue}
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <Label label={"Фото"} />

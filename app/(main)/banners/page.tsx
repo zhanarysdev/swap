@@ -34,20 +34,20 @@ const labels = [
 ];
 
 const schema = yup.object().shape({
-  name: yup.string().required('Название обязательно'),
-  city_id: yup.array().of(yup.string()).required('Город обязателен'),
-  priority: yup.string().required('Приоритет обязателен'),
-  link: yup.string().when('priority', {
-    is: 'link',
-    then: (schema) => schema.required('Ссылка обязательна'),
-    otherwise: (schema) => schema.nullable()
+  name: yup.string().required("Название обязательно"),
+  city_id: yup.array().of(yup.string()).required("Город обязателен"),
+  priority: yup.string().required("Приоритет обязателен"),
+  link: yup.string().when("priority", {
+    is: "link",
+    then: (schema) => schema.required("Ссылка обязательна"),
+    otherwise: (schema) => schema.nullable(),
   }),
-  advertisment: yup.string().when('priority', {
-    is: 'advertisment',
-    then: (schema) => schema.required('Ссылка обязательна'),
-    otherwise: (schema) => schema.nullable()
+  advertisment: yup.string().when("priority", {
+    is: "advertisment",
+    then: (schema) => schema.required("Ссылка обязательна"),
+    otherwise: (schema) => schema.nullable(),
   }),
-  image: yup.mixed().required('Изображение обязательно')
+  image: yup.mixed().required("Изображение обязательно"),
 });
 
 type FormSchemaType = yup.InferType<typeof schema>;
@@ -101,7 +101,7 @@ export default function BannersPage() {
         ...prev,
         data: data?.result.map((el) => ({
           ...el,
-          city: el.cities.map((el) => el.name.ru).join(', '),
+          city: el.cities.map((el) => el.name.ru).join(", "),
           order: el.priority,
           status: el.is_active ? "active" : "not_active",
           link: el.link,
@@ -115,18 +115,18 @@ export default function BannersPage() {
         onEdit: (id) => {
           const banner = data.result.find((el) => el.id === id);
           if (banner) {
-            console.log(banner)
-            if(banner.link.includes('category')){
+            console.log(banner);
+            if (banner.link.includes("category")) {
               setValue("priority", "category");
-              setValue("link", banner.link.split('categoryDetail/')[1]);
-            }else if(banner.link.includes('taskDetail')){
+              setValue("link", banner.link.split("categoryDetail/")[1]);
+            } else if (banner.link.includes("taskDetail")) {
               setValue("priority", "advertisment");
-              setValue("advertisment", banner.link.split('taskDetail/')[1]);
-            }else{
+              setValue("advertisment", banner.link.split("taskDetail/")[1]);
+            } else {
               setValue("priority", "link");
               setValue("link", banner.link);
             }
-            setValue("city_id", banner.city.id);
+            setValue("city_id", banner.city_ids);
             setValue("name", banner.title);
             setValue("image", banner.image_url);
             setOpen(true);
@@ -154,27 +154,27 @@ export default function BannersPage() {
   }, []);
 
   async function save(data: FormSchemaType) {
-    console.log(data)
+    console.log(data);
     let link;
-    if(data.priority === 'category'){
-      link = `/categoryDetail/${data.link}`
-    }else if(data.priority === 'advertisment'){
-      link = `/taskDetail/${data.advertisment}`
-    }else{
-      link = `https://${data.link}`
+    if (data.priority === "category") {
+      link = `/categoryDetail/${data.link}`;
+    } else if (data.priority === "advertisment") {
+      link = `/taskDetail/${data.advertisment}`;
+    } else {
+      link = `https://${data.link}`;
     }
-      const formData = new FormData();
-      formData.append("title", data.name)
-      formData.append("city_ids", data.city_id.join(','))
-      formData.append("priority", "0")
-      formData.append("link",  link)
+    const formData = new FormData();
+    formData.append("title", data.name);
+    formData.append("city_ids", data.city_id.join(","));
+    formData.append("priority", "0");
+    formData.append("link", link);
 
     if (data.image instanceof File) {
       formData.append("image", data.image);
     }
     const res = await postFile({
       url: `banner/create`,
-      data: formData
+      data: formData,
     });
     if (res.statusCode === 200) {
       reset();
@@ -185,7 +185,7 @@ export default function BannersPage() {
 
   async function onEdit(data: FormSchemaType) {
     const formData = new FormData();
-    formData.append("city_ids", data.city_id.join(','));
+    formData.append("city_ids", data.city_id.join(","));
     formData.append("priority", data.priority.toString());
     formData.append("link", data.link);
 
@@ -198,9 +198,14 @@ export default function BannersPage() {
       data: {
         id: isEdit,
         title: data.name,
-        city_id: data.city_id.join(','),
-        link: watch("priority") === "category" ? `/categoryID/${data.link}` : watch("priority") === "advertisment" ? `/taskID/${data.link}` :  data.link,
-        image_url: watch("image")
+        city_ids: data.city_id.join(","),
+        link:
+          watch("priority") === "category"
+            ? `/categoryID/${data.link}`
+            : watch("priority") === "advertisment"
+            ? `/taskID/${data.link}`
+            : data.link,
+        image_url: watch("image"),
       },
     });
     if (res.statusCode === 200) {
@@ -221,19 +226,19 @@ export default function BannersPage() {
 
   if (isLoading) return <Spinner />;
 
- async function handleDrag(newData: any) {
-  const res = await post({
-    url: `banner/reorder`,
-    data: {
-      priorities: newData.map((el: any) => ({
-        id: el.id,  
-        priority: el.order,
-      })),
-    },
-  });
-  if (res.statusCode === 200) {
-    mutate();
-  }
+  async function handleDrag(newData: any) {
+    const res = await post({
+      url: `banner/reorder`,
+      data: {
+        priorities: newData.map((el: any) => ({
+          id: el.id,
+          priority: el.order,
+        })),
+      },
+    });
+    if (res.statusCode === 200) {
+      mutate();
+    }
   }
 
   return (
@@ -262,20 +267,21 @@ export default function BannersPage() {
                 <Controller
                   control={control}
                   name="city_id"
-                  render={({ field }) => (
-                    <MultiSelect
-                      options={cities.data?.result.map((el) => ({
-                        value: el.id,
-                        label: el.name,
-                      }))}
-                      data={field.value ?  field.value : []}
-                      onChange={field.onChange}
-                    />
-                  )}
+                  render={({ field }) => {
+                    return (
+                      <MultiSelect
+                        options={cities.data?.result.map((el) => ({
+                          value: el.id,
+                          label: el.name,
+                        }))}
+                        data={field.value ? field.value : []}
+                        onChange={field.onChange}
+                      />
+                    );
+                  }}
                 />
                 <FieldError error={errors.city_id?.message} />
               </div>
-
 
               <div className="flex flex-col gap-2">
                 <Label label="Изображение" />
@@ -310,7 +316,6 @@ export default function BannersPage() {
           />,
           document.getElementById("page-wrapper")
         )}
-
     </div>
   );
 }
