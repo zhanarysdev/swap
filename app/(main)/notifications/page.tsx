@@ -3,7 +3,7 @@ import { useDebounce } from "@/components/debuncer";
 import { Header } from "@/components/header/header";
 import { ModalDelete } from "@/components/modal/modal-delete";
 import { default_context, TableContext } from "@/components/temp/table-provider";
-import { fetcher, remove } from "@/fetcher";
+import { fetcher } from "@/fetcher";
 import Table from '@/components/temp/table'
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -43,7 +43,7 @@ const labels = [
 ];
 
 export default function NotificationsPage() {
-
+  const [isDelete, setDelete] = useState<null | string[]>(null);
   const { context, setContext } = useContext(TableContext);
   const debouncedSearch = useDebounce(context.search, 500);
 
@@ -67,6 +67,7 @@ export default function NotificationsPage() {
   const deleteMultiple = async (ids: string[]) => {
     if (!ids || ids.length === 0) {
       console.error('No notifications selected for deletion');
+      setDelete(null);
       return;
     }
 
@@ -84,19 +85,22 @@ export default function NotificationsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete notifications');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete notifications');
       }
 
       // Refresh the data after successful deletion
       await mutate();
 
-      // Clear checked items
+      // Clear checked items and close modal
+      setDelete(null);
       setContext(prev => ({
         ...prev,
         checked: []
       }));
     } catch (error) {
       console.error('Error deleting notifications:', error);
+      setDelete(null);
     }
   }
 
@@ -108,16 +112,21 @@ export default function NotificationsPage() {
         labels: labels,
         goTo: "/notifications",
         sort: [],
+        onDelete: (id: string) => setDelete([id]),
         filters: [],
         control: {
           label: "Удалить",
           buttonBG: ButtonBG.red,
           disabled: "checked",
-          action: (ids) => deleteMultiple(ids)
+          action: () => {
+            if (context.checked && context.checked.length > 0) {
+              setDelete(context.checked);
+            }
+          }
         }
       }));
     }
-  }, [data, setContext]);
+  }, [data, setContext, context.checked]);
 
   useEffect(() => {
     return () => {
@@ -129,6 +138,16 @@ export default function NotificationsPage() {
     <div>
       <Header subTitle="Информация" title="Уведомления" />
       <Table />
+
+      {isDelete &&
+        createPortal(
+          <ModalDelete
+            label={"Удалить"}
+            close={() => setDelete(null)}
+            onDelete={() => deleteMultiple(isDelete)}
+          />,
+          document.getElementById("page-wrapper")
+        )}
     </div>
   );
 }
