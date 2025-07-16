@@ -38,7 +38,6 @@ export const Sortable = ({
         },
         post
     );
-    console.log("00000", data);
     useEffect(() => {
         if (data?.result) {
             setCategories(data.result);

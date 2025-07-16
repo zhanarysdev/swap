@@ -239,10 +239,15 @@ export default function ModerationPage() {
       } else {
         link = `https://${data.link}`;
       }
-
       notificationFormData.append("link", link);
       notificationFormData.append("image", data.photo);
       setSending(true);
+
+      // Log FormData contents
+      console.log('FormData contents:');
+      for (let pair of notificationFormData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
 
       const res = await postFile({
         url: "notification/send",

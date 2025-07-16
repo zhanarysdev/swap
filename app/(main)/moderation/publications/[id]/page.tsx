@@ -52,31 +52,23 @@ const labels = [
 
 const schema = y
   .object({
-    image: y.string().required("Oбязательное поле"),
-    rank_bronze: y.string().required("Oбязательное поле"),
-    rank_silver: y.string().required("Oбязательное поле"),
-    rank_gold: y.string().required("Oбязательное поле"),
-    rank_platinum: y.string().required("Oбязательное поле"),
-    description: y.string().required("Oбязательное поле"),
-    branch: y.string().required("Oбязательное поле"),
-    created_at: y.string().required("Oбязательное поле"),
-    restriction: y.string().required("Oбязательное поле"),
-    budget: y.string().required("Oбязательное поле"),
-    business_name: y.string().required("Oбязательное поле"),
-    rating: y.string().required("Oбязательное поле"),
-    instagram: y.string().required("Oбязательное поле"),
-    phone: y.string().required("Oбязательное поле"),
-    birthday: y.string().required("Oбязательное поле"),
-    influencer_count: y.string().required("Oбязательное поле"),
-    gender: y.string().required("Oбязательное поле"),
-    city: y.string().required("Oбязательное поле"),
-    category: y.string().required("Oбязательное поле"),
-    is_bad_words_allowed: y.boolean().required("Oбязательное поле"),
-    clothing_type: y.string().required("Oбязательное поле"),
-    start_date: y.string().required("Oбязательное поле"),
-    end_date: y.string().required("Oбязательное поле"),
-    publication_type: y.string().required("Oбязательное поле"),
-    ad_format: y.string().required("Oбязательное поле"),
+    image: y.string().optional(),
+    rank_bronze: y.string().optional(),
+    rank_silver: y.string().optional(),
+    rank_gold: y.string().optional(),
+    rank_platinum: y.string().optional(),
+    about: y.string().optional(),
+    branch: y.string().optional(),
+    budget: y.string().optional(),
+    business_name: y.string().optional(),
+    influencer_count: y.string().optional(),
+    is_bad_words_allowed: y.boolean().optional(),
+    clothing_type_id: y.string().optional(),
+    start_date: y.string().optional(),
+    end_date: y.string().optional(),
+    publication_type: y.string().optional(),
+    ad_format: y.string().optional(),
+    created_at: y.string().optional(),
   })
   .required();
 type FormData = y.InferType<typeof schema>;
@@ -86,9 +78,10 @@ export default function ModerationPublicationsIdPage() {
   const { push } = useRouter();
   const [isEdit, setEdit] = useState(false);
   const [isDelete, setDelete] = useState(false);
-  const {context, setContext} = useContext(TableContext);
+  const { context, setContext } = useContext(TableContext);
 
   const { data, isLoading, mutate } = useSWR({ url: `tasks/${id}` }, fetcher);
+  const { data: ranksData } = useSWR({ url: `rank/list`, data: { search: "" } }, post);
 
   const {
     handleSubmit,
@@ -102,26 +95,51 @@ export default function ModerationPublicationsIdPage() {
   });
 
   useEffect(() => {
-    if (data?.result) {
-      reset({ ...data.result, branch: data.result.branches[0].address, 
-        budget: `${data.result.spent_budget} / ${data.result.budget} ₸`,
-        influencer_count: data.result.influencer_amount,
-        rank_bronze: data.result.rewards.find(r => r.rank === 'bronze')?.reward, 
-        rank_silver: data.result.rewards.find(r => r.rank === 'silver')?.reward, 
-        rank_gold: data.result.rewards.find(r => r.rank === 'gold')?.reward, 
-        rank_platinum: data.result.rewards.find(r => r.rank === 'platinum')?.reward 
+    if (data && ranksData) {
+      const ranks = ranksData.result || [];
+      console.log("Available ranks:", ranks);
+      console.log("Rewards by rank:", data.rewards_by_rank);
+
+      reset({
+        ...data,
+        branch: data.branches[0]?.address,
+        budget: `${data.spent_budget} / ${data.budget} ₸`,
+        influencer_count: data.influencer_amount,
+        rank_bronze: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('bronze');
+        })?.reward,
+        rank_silver: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('silver');
+        })?.reward,
+        rank_gold: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('gold');
+        })?.reward,
+        rank_platinum: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('platinum');
+        })?.reward,
+        image: data.images[0]?.image
       });
     }
-  }, [data, reset]);
+  }, [data, ranksData, reset]);
   const { back } = useRouter();
   const logs = useSWR({ url: `moderation/tasks/${id}` }, fetcher);
-  console.log("========", logs.data)
+
+  console.log("========", data)
+  console.log("Ranks data:", ranksData)
 
   useEffect(() => {
-    setContext(old => ({...old, data: data?.result.bookings.map((el) => ({...el, created_at: new Date(el.created_at).toLocaleDateString(), 
-      visit_date:  `${new Date(el.visit_date).toLocaleDateString()} ${el.start_time} - ${el.end_time} `
-      //there should be ranks 
-      , rating: el.influencer_rank})) ?? [], pure: true, labels: labels, number: true}))
+    setContext(old => ({
+      ...old, data: data?.bookings.map((el) => ({
+        ...el, created_at: new Date(el.created_at).toLocaleDateString(),
+        visit_date: `${new Date(el.visit_date).toLocaleDateString()} ${el.start_time} - ${el.end_time} `
+        //there should be ranks
+        , rating: el.influencer_rank
+      })) ?? [], pure: true, labels: labels, number: true
+    }))
   }, [data])
 
 
@@ -204,7 +222,7 @@ export default function ModerationPublicationsIdPage() {
         <div className="flex flex-col gap-6 w-full">
           <div className="flex flex-col gap-2">
             <Label label={"Описание"} />
-            <InputLink label={watch("description")} />
+            <InputLink label={watch("about")} />
           </div>
           <div className="flex flex-col gap-2">
             <Label label={"Филиалы"} />
@@ -212,7 +230,7 @@ export default function ModerationPublicationsIdPage() {
           </div>
           <div className="flex flex-col gap-2">
             <Label label={"Текст для рекламы"} />
-            <InputLink label={watch("description")} />
+            <InputLink label={watch("about")} />
           </div>
           <div className="flex flex-col gap-2">
             <Label label={"Ненормативная лексика"} />
@@ -230,7 +248,7 @@ export default function ModerationPublicationsIdPage() {
           </div>
           <div className="flex flex-col gap-2">
             <Label label={"Одежда"} />
-            <InputLink label={watch("clothing_type")} />
+            <InputLink label={watch("clothing_type_id")} />
           </div>
           <div className="flex flex-col gap-2">
             <Label label={"Инфлюенсеров "} />
@@ -249,7 +267,7 @@ export default function ModerationPublicationsIdPage() {
             <InputLink label={watch("ad_format")} />
           </div>
         </div>
-        
+
       </form>
       <div className="mt-[64px]">
         <h2 className="text-[24px] font-bold leading-7 mb-8">
