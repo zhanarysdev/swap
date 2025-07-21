@@ -4,14 +4,14 @@ export const Preview = ({
   img,
   close,
   end_date,
-  publication_type,
+  // publication_type,
   business_name,
   reward
 }: {
   img: string;
   close: () => void;
   end_date: string;
-  publication_type: string;
+  // publication_type: string;
   business_name: string;
   reward: number;
 }) => {
@@ -45,7 +45,7 @@ export const Preview = ({
               <div className="text-white text-center text-2xl leading-7 font-bold">{business_name}</div>
               <div className="flex items-center justify-center gap-2 mt-4">
                 <div className="bg-[#212121] rounded-[10px] px-4 py-2">
-                  {publication_type}
+                  {/* {publication_type} */}
                 </div>
               </div>
 

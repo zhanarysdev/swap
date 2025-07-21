@@ -103,6 +103,9 @@ export default function AdsIdPage() {
 
   const { data, isLoading, mutate } = useSWR({ url: `tasks/${id}` }, fetcher);
 
+  const { data: ranksData } = useSWR({ url: `rank/list`, data: { search: "" } }, post);
+  console.log(data)
+
   const {
     handleSubmit,
     register,
@@ -117,7 +120,7 @@ export default function AdsIdPage() {
   const archive = async () => {
     const res = await post({
       url: `task/archive/${id}`,
-      data: { id: data.result.id },
+      data: { id: data.id },
     });
     if (res.result) {
       mutate();
@@ -125,31 +128,43 @@ export default function AdsIdPage() {
   };
 
   useEffect(() => {
-    if (data?.result) {
+    if (data && ranksData) {
+      const ranks = ranksData.result || [];
       reset({
-        ...data.result,
-        branch: data.result.branches[0].address,
-        budget: `${data.result.spent_budget} / ${data.result.budget} ₸`,
-        influencer_count: data.result.influencer_amount,
-        image: data.result.images[0],
-        description: data.result.about,
-        ad_type: data.result.content_type.format,
-        rank_bronze: data.result.rewards.find((r) => r.rank === "bronze")
-          ?.reward,
-        rank_silver: data.result.rewards.find((r) => r.rank === "silver")
-          ?.reward,
-        rank_gold: data.result.rewards.find((r) => r.rank === "gold")?.reward,
-        rank_platinum: data.result.rewards.find((r) => r.rank === "platinum")
-          ?.reward,
+        ...data,
+        branch: data.branches[0].address,
+        budget: `${data.spent_budget} / ${data.budget} ₸`,
+        influencer_count: data.influencer_amount,
+        description: data.about,
+        ad_type: data.ad_format,
+
+        image: data.images[0]?.image,
+
+        rank_bronze: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('bronze');
+        })?.reward,
+        rank_silver: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('silver');
+        })?.reward,
+        rank_gold: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('gold');
+        })?.reward,
+        rank_platinum: data.rewards_by_rank.find(r => {
+          const rank = ranks.find(rankItem => rankItem.id === r.rank_id);
+          return rank?.name?.toLowerCase().includes('platinum');
+        })?.reward,
       });
     }
-  }, [data, reset]);
+  }, [data, ranksData, reset]);
 
   useEffect(() => {
     setContext((old) => ({
       ...old,
       data:
-        data?.result.bookings.map((el) => ({
+        data?.bookings.map((el) => ({
           ...el,
           created_at: new Date(el.created_at).toLocaleDateString(),
           visit_date: `${new Date(el.visit_date).toLocaleDateString()} ${el.start_time} - ${el.end_time} `,
@@ -294,7 +309,12 @@ export default function AdsIdPage() {
         createPortal(
           <Modal label="График посещения" close={() => setOpen(false)}>
             <div className="flex flex-col gap-2">
-              {data.result.work_hours.map((el) => {
+              {data?.working_hours?.map((el) => {
+                // Format time to show only HH:MM
+                const formatTime = (timeString: string) => {
+                  return timeString.split('.')[0].substring(0, 5);
+                };
+
                 return (
                   <div
                     key={el.week_day}
@@ -303,11 +323,11 @@ export default function AdsIdPage() {
                     <div>{weekDaysMap[el.week_day.toLowerCase()] || el.week_day}</div>
                     <div className="flex gap-2 items-center">
                       <div className="bg-[#212121] px-3 py-2 rounded-2xl">
-                        {el.open_time}
+                        {formatTime(el.open_time)}
                       </div>
                       -
                       <div className="bg-[#212121] px-3 py-2 rounded-2xl">
-                        {el.close_time}
+                        {formatTime(el.close_time)}
                       </div>
                     </div>
                   </div>
@@ -320,12 +340,12 @@ export default function AdsIdPage() {
       {showPreview &&
         createPortal(
           <Preview
-            img={data.result.images[0]}
+            img={data.images[0]}
             close={() => setPreview(false)}
-            end_date={data.result.end_date}
-            publication_type={data.result.content_type.format}
-            business_name={data.result.business_name}
-            reward={data.result.rewards.find((r) => r.rank === "platinum").reward}
+            end_date={data.end_date}
+            // publication_type={data.content_type.format}
+            business_name={data.business_name}
+            reward={data.rewards.find((r) => r.rank === "platinum").reward}
           />,
           document.getElementById("page-wrapper"),
         )}
