@@ -31,7 +31,7 @@ export default function LoginPage() {
   const { push } = useRouter();
 
   const submit = async (data: FormData) => {
-    const res = await fetch("https://swapp.kz/api/v1/superadmin/login", {
+    const res = await fetch("https://admin.swapp.kz/api/v1/superadmin/login", {
       headers: {
         "Content-Type": "application/json",
       },
@@ -40,7 +40,7 @@ export default function LoginPage() {
     }).then((res) => res.json());
     if (res?.statusCode === 200) {
       localStorage?.setItem("token", res.result);
-document.cookie = `token=${res.result}; path=/; max-age=2592000; SameSite=Strict`;
+      document.cookie = `token=${res.result}; path=/; max-age=2592000; SameSite=Strict`;
       push("/busines");
     } else {
       setError("root", { message: "Неправильный логин или пароль" });

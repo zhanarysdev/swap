@@ -72,7 +72,7 @@ export default function NotificationsPage() {
     }
 
     try {
-      const response = await fetch('https://swapp-admin-stg-414022925388.us-central1.run.app/api/v1/notification', {
+      const response = await fetch('https://admin.swapp.kz/api/v1/notification', {
         method: 'DELETE',
         headers: {
           'accept': 'application/json',
