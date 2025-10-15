@@ -58,6 +58,18 @@ if (typeof window !== "undefined") {
   token = localStorage?.getItem("token");
 }
 
+// Function to handle 401 redirects
+const handleUnauthorized = () => {
+  if (typeof window !== "undefined") {
+    // Clear token from localStorage and cookies
+    localStorage?.removeItem("token");
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+    // Redirect to login page
+    window.location.href = "/login";
+  }
+};
+
 export const fetcher = async ({
   url,
   custom,
@@ -79,6 +91,10 @@ export const fetcher = async ({
     }
   ).then((response) => {
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error("Unauthorized - redirecting to login");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
@@ -101,6 +117,10 @@ export const post = async ({ url, data, custom = false }) => {
     }
   ).then((response) => {
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error("Unauthorized - redirecting to login");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
@@ -122,6 +142,10 @@ export const postFile = async ({ url, data, custom = false }) => {
     }
   ).then((response) => {
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error("Unauthorized - redirecting to login");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
@@ -144,6 +168,10 @@ export const editFile = async ({ url, data, custom = false }) => {
     }
   ).then((response) => {
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error("Unauthorized - redirecting to login");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
@@ -167,6 +195,10 @@ export const edit = async ({ url, data, custom = false }) => {
     }
   ).then((response) => {
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error("Unauthorized - redirecting to login");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
@@ -195,6 +227,10 @@ export const remove = async ({
     }
   ).then((response) => {
     if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+        throw new Error("Unauthorized - redirecting to login");
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();

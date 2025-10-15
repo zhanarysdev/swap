@@ -16,7 +16,7 @@ import {
   TableContext,
   default_context,
 } from "@/components/temp/table-provider";
-import { edit, fetcher, post, postFile, remove } from "@/fetcher";
+import { edit, editFile, fetcher, post, postFile, remove } from "@/fetcher";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -184,35 +184,52 @@ export default function BannersPage() {
   }
 
   async function onEdit(data: FormSchemaType) {
-    const formData = new FormData();
-    formData.append("city_ids", data.city_id.join(","));
-    formData.append("priority", data.priority.toString());
-    formData.append("link", data.link);
-
-    if (data.image instanceof File) {
-      formData.append("image", data.image);
+    let link;
+    if (data.priority === "category") {
+      link = `/categoryDetail/${data.link}`;
+    } else if (data.priority === "advertisment") {
+      link = `/taskDetail/${data.advertisment}`;
+    } else {
+      link = `https://${data.link}`;
     }
 
-    const res = await edit({
-      url: `banner/edit`,
-      data: {
-        id: isEdit,
-        title: data.name,
-        city_ids: data.city_id.join(","),
-        link:
-          watch("priority") === "category"
-            ? `/categoryID/${data.link}`
-            : watch("priority") === "advertisment"
-            ? `/taskID/${data.link}`
-            : data.link,
-        image_url: watch("image"),
-      },
-    });
-    if (res.statusCode === 200) {
-      reset();
-      setEdit(null);
-      setOpen(false);
-      mutate();
+    if (data.image instanceof File) {
+      // If there's a new image file, use FormData
+      const formData = new FormData();
+      formData.append("id", isEdit!);
+      formData.append("title", data.name);
+      formData.append("city_ids", data.city_id.join(","));
+      formData.append("priority", "0");
+      formData.append("link", link);
+      formData.append("image", data.image);
+
+      const res = await editFile({
+        url: `banner/edit`,
+        data: formData,
+      });
+      if (res.statusCode === 200) {
+        reset();
+        setEdit(null);
+        setOpen(false);
+        mutate();
+      }
+    } else {
+      // If no new image, send regular JSON data
+      const res = await edit({
+        url: `banner/edit`,
+        data: {
+          id: isEdit,
+          title: data.name,
+          city_ids: data.city_id.join(","),
+          link: link,
+        },
+      });
+      if (res.statusCode === 200) {
+        reset();
+        setEdit(null);
+        setOpen(false);
+        mutate();
+      }
     }
   }
 
